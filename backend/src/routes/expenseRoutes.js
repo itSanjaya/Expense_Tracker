@@ -1,13 +1,9 @@
-const express = require('express');
+import express from "express";
+import expenseController from "../controllers/expenseController.js";
+
 const router = express.Router();
 
-const controller = require('../controllers/expenseController');
-const auth = require('../middleware/authMiddleware');
+router.get("/", expenseController.getExpenses);
+router.post("/", expenseController.addExpense);
 
-router.use(auth);
-
-router.post('/', controller.create);
-router.get('/', controller.getAll);
-router.delete('/:id', controller.remove);
-
-module.exports = router;
+export default router;

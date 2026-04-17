@@ -1,23 +1,14 @@
-const express = require('express');
-const cors = require('cors');
-
-const authRoutes = require('./routes/authRoutes');
-const expenseRoutes = require('./routes/expenseRoutes');
-const errorHandler = require('./middleware/errorHandler');
+import express from "express";
+import cors from "cors";
+import expenseRoutes from "./routes/expenseRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 
 const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:5173', // Vite's default port
-  credentials: true,               // needed if you send cookies or auth headers
-}));
+app.use(cors());
 app.use(express.json());
 
-app.use('/auth', authRoutes);
-app.use('/expenses', expenseRoutes);
+app.use("/expenses", expenseRoutes);
+app.use("/categories", categoryRoutes);
 
-
-
-app.use(errorHandler);
-
-module.exports = app;
+export default app;
