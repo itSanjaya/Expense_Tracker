@@ -1,58 +1,27 @@
-const service = require('../services/expenseService');
+import Expense from "../models/expenseModel.js";
 
-async function create(req, res, next) {
+const getExpenses = async (req, res) => {
   try {
-    const expense = await service.createExpense(req.user.id, req.body);
-
-    res.json({
-      data: expense,
-      meta: {},
-      error: null
-    });
-  } catch (err) {
-    next(err);
+    const expenses = await Expense.getExpensesByUser(1); 
+    res.status(200).json(expenses);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-}
+};
 
-async function getAll(req, res, next) {
+const addExpense = async (req, res) => {
   try {
-    const { page, limit } = req.query;
+    const data = req.body;
 
-    const expenses = await service.getExpenses(
-      req.user.id,
-      Number(page) || 1,
-      Number(limit) || 10
-    );
+    const newExpense = await Expense.createExpense(1, data);
 
-    res.json({
-      data: expenses,
-      meta: { page: Number(page) || 1 },
-      error: null
-    });
-  } catch (err) {
-    next(err);
+    res.status(201).json(newExpense);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-}
+};
 
-async function remove(req, res, next) {
-  try {
-    const result = await service.deleteExpense(
-      req.user.id,
-      req.params.id
-    );
-
-    res.json({
-      data: result,
-      meta: {},
-      error: null
-    });
-  } catch (err) {
-    next(err);
-  }
-}
-
-module.exports = {
-  create,
-  getAll,
-  remove
+export default {
+  getExpenses,
+  addExpense,
 };
