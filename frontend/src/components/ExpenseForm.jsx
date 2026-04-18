@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { addExpense, getCategories } from "../api/expenseApi";
+import { addExpense, addCategory } from "../api/expenseApi";
 
-function ExpenseForm({ onExpenseAdded }) {
+function ExpenseForm({ onExpenseAdded, categories: propCategories }) {
   const [form, setForm] = useState({
     amount: "",
     description: "",
@@ -9,29 +9,46 @@ function ExpenseForm({ onExpenseAdded }) {
     category_id: "",
   });
 
-  const [categories, setCategories] = useState([]);
+  const [localCategories, setLocalCategories] = useState(propCategories);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
+  // keep localCategories in sync with parent
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await getCategories();
-        setCategories(res.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
+    setLocalCategories(propCategories);
+  }, [propCategories]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await addExpense(form);
+      let categoryId = form.category_id;
 
-      // ✅ notify parent
-      onExpenseAdded(res.data);
+      // CASE 1: user selected "add-new"
+      if (categoryId === "add-new") {
+        if (!newCategoryName.trim()) {
+          console.error("Category name required");
+          return;
+        }
+
+        const categoryRes = await addCategory({
+          name: newCategoryName,
+        });
+
+        const newCategory = categoryRes.data;
+
+        // update dropdown locally
+        setLocalCategories((prev) => [...prev, newCategory]);
+
+        categoryId = newCategory.id;
+      }
+
+      // create expense using final categoryId
+      const expenseRes = await addExpense({
+        ...form,
+        category_id: categoryId,
+      });
+
+      onExpenseAdded(expenseRes.data);
 
       // reset form
       setForm({
@@ -40,58 +57,76 @@ function ExpenseForm({ onExpenseAdded }) {
         date: "",
         category_id: "",
       });
+
+      setNewCategoryName("");
     } catch (error) {
       console.error("Error adding expense:", error);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Add Expense</h2>
+    <div>
+      <form onSubmit={handleSubmit}>
+        <h2>Add Expense</h2>
 
-      <input
-        type="number"
-        placeholder="Amount"
-        value={form.amount}
-        onChange={(e) =>
-          setForm({ ...form, amount: e.target.value })
-        }
-      />
+        <input
+          type="number"
+          placeholder="Amount"
+          value={form.amount}
+          onChange={(e) =>
+            setForm({ ...form, amount: e.target.value })
+          }
+        />
 
-      <input
-        type="text"
-        placeholder="Description"
-        value={form.description}
-        onChange={(e) =>
-          setForm({ ...form, description: e.target.value })
-        }
-      />
+        <input
+          type="text"
+          placeholder="Description"
+          value={form.description}
+          onChange={(e) =>
+            setForm({ ...form, description: e.target.value })
+          }
+        />
 
-      <input
-        type="date"
-        value={form.date}
-        onChange={(e) =>
-          setForm({ ...form, date: e.target.value })
-        }
-      />
+        <input
+          type="date"
+          value={form.date}
+          onChange={(e) =>
+            setForm({ ...form, date: e.target.value })
+          }
+        />
 
-      <select
-        value={form.category_id}
-        onChange={(e) =>
-          setForm({ ...form, category_id: e.target.value })
-        }
-      >
-        <option value="">Select Category</option>
+        <select
+          value={form.category_id}
+          onChange={(e) =>
+            setForm({ ...form, category_id: e.target.value })
+          }
+        >
+          <option value="">Select Category</option>
 
-        {categories.map((cat) => (
-          <option key={cat.id} value={cat.id}>
-            {cat.name}
-          </option>
-        ))}
-      </select>
+          {localCategories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
 
-      <button type="submit">Add Expense</button>
-    </form>
+          <option value="add-new">+ Add New Category</option>
+        </select>
+
+        <button type="submit">Add Expense</button>
+      </form>
+
+      {/* Inline category creation */}
+      {form.category_id === "add-new" && (
+        <div>
+          <input
+            type="text"
+            placeholder="New category name"
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
