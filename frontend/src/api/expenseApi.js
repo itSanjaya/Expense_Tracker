@@ -5,7 +5,6 @@ const API = axios.create({
 });
 
 export const getExpenses = () => API.get("/expenses");
-
 export const addExpense = (data) => API.post("/expenses", data);
-
 export const getCategories = () => API.get("/categories");
+export const addCategory = (data) => API.post("/categories", data);
