@@ -2,7 +2,9 @@ import Expense from "../models/expenseModel.js";
 
 const getExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.getExpensesByUser(1); 
+    const userID = req.user.id; // from authMiddleware
+    
+    const expenses = await Expense.getExpensesByUser(userID);
     res.status(200).json(expenses);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -12,8 +14,9 @@ const getExpenses = async (req, res) => {
 const addExpense = async (req, res) => {
   try {
     const data = req.body;
-
-    const newExpense = await Expense.createExpense(1, data);
+    const userID = req.user.id; // from authMiddleware
+    
+    const newExpense = await Expense.createExpense(userID, data);
 
     res.status(201).json(newExpense);
   } catch (error) {
@@ -24,7 +27,9 @@ const addExpense = async (req, res) => {
 const deleteExpense = async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedExpense = await Expense.deleteExpense(id, 1);
+    const userID = req.user.id; // from authMiddleware
+
+    const deletedExpense = await Expense.deleteExpense(id, userID);
     if (!deletedExpense) {
       return res.status(404).json({ error: "Expense not found" });
     }
@@ -38,7 +43,9 @@ const updateExpense = async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
-    const updatedExpense = await Expense.updateExpense(id, 1, data);
+    const userID = req.user.id; // from authMiddleware
+
+    const updatedExpense = await Expense.updateExpense(id, userID, data);
     if (!updatedExpense) {
       return res.status(404).json({ error: "Expense not found" });
     }
