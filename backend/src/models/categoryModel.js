@@ -1,7 +1,10 @@
 import db from "../config/db.js";
 
-const getAllCategories = async () => {
-  const result = await db.query("SELECT * FROM categories ORDER BY id");
+const getAllCategories = async (userId) => {
+  const result = await db.query(
+    "SELECT * FROM categories WHERE user_id = $1 ORDER BY id",
+    [userId]
+  );
   return result.rows;
 };
 

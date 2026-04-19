@@ -2,7 +2,9 @@ import categoryModel from "../models/categoryModel.js";
 
 const fetchCategories = async (req, res) => {
   try {
-    const categories = await categoryModel.getAllCategories();
+    const userID = req.user.id; // from authMiddleware
+
+    const categories = await categoryModel.getAllCategories(userID);
     res.status(200).json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -12,7 +14,7 @@ const fetchCategories = async (req, res) => {
 
 const addCategory = async (req, res) => {
   const { name } = req.body;
-  const userId = 1;
+  const userId = req.user.id; // from authMiddleware
 
   try {
     const newCategory = await categoryModel.createCategory(name, userId);
