@@ -26,4 +26,6 @@ dist-ssr
 src/test-db.js
 src/test.js
 
+backend/cookies.txt
+
 .env
