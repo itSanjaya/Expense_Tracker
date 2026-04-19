@@ -73,33 +73,25 @@ function ExpenseForm({ onExpenseAdded, categories: propCategories }) {
           type="number"
           placeholder="Amount"
           value={form.amount}
-          onChange={(e) =>
-            setForm({ ...form, amount: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, amount: e.target.value })}
         />
 
         <input
           type="text"
           placeholder="Description"
           value={form.description}
-          onChange={(e) =>
-            setForm({ ...form, description: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
 
         <input
           type="date"
           value={form.date}
-          onChange={(e) =>
-            setForm({ ...form, date: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, date: e.target.value })}
         />
 
         <select
           value={form.category_id}
-          onChange={(e) =>
-            setForm({ ...form, category_id: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, category_id: e.target.value })}
         >
           <option value="">Select Category</option>
 
@@ -111,21 +103,19 @@ function ExpenseForm({ onExpenseAdded, categories: propCategories }) {
 
           <option value="add-new">+ Add New Category</option>
         </select>
-
+        {/* Inline category creation */}
+        {form.category_id === "add-new" && (
+          <div>
+            <input
+              type="text"
+              placeholder="New category name"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+            />
+          </div>
+        )}
         <button type="submit">Add Expense</button>
       </form>
-
-      {/* Inline category creation */}
-      {form.category_id === "add-new" && (
-        <div>
-          <input
-            type="text"
-            placeholder="New category name"
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-          />
-        </div>
-      )}
     </div>
   );
 }
