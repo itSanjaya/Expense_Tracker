@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { addExpense, addCategory } from "../api/expenseApi";
 
-function ExpenseForm({ onExpenseAdded, categories: propCategories, onCategoryAdded }) {
+function ExpenseForm({ onExpenseAdded, categories: propCategories }) {
   const [form, setForm] = useState({
     amount: "",
     description: "",
@@ -12,7 +12,6 @@ function ExpenseForm({ onExpenseAdded, categories: propCategories, onCategoryAdd
   const [localCategories, setLocalCategories] = useState(propCategories);
   const [newCategoryName, setNewCategoryName] = useState("");
 
-  // keep localCategories in sync with parent
   useEffect(() => {
     setLocalCategories(propCategories);
   }, [propCategories]);
@@ -23,24 +22,19 @@ function ExpenseForm({ onExpenseAdded, categories: propCategories, onCategoryAdd
     try {
       let categoryId = form.category_id;
 
-      // CASE 1: user selected "add-new"
       if (categoryId === "add-new") {
-        if (!newCategoryName.trim()) {
-          console.error("Category name required");
-          return;
-        }
+        if (!newCategoryName.trim()) return;
 
         const categoryRes = await addCategory({
           name: newCategoryName,
         });
 
         const newCategory = categoryRes.data;
+
         setLocalCategories((prev) => [...prev, newCategory]);
-        onCategoryAdded(newCategory); // ← notify parent
         categoryId = newCategory.id;
       }
 
-      // create expense using final categoryId
       const expenseRes = await addExpense({
         ...form,
         category_id: categoryId,
@@ -48,7 +42,6 @@ function ExpenseForm({ onExpenseAdded, categories: propCategories, onCategoryAdd
 
       onExpenseAdded(expenseRes.data);
 
-      // reset form
       setForm({
         amount: "",
         description: "",
@@ -58,61 +51,86 @@ function ExpenseForm({ onExpenseAdded, categories: propCategories, onCategoryAdd
 
       setNewCategoryName("");
     } catch (error) {
-      console.error("Error adding expense:", error);
+      console.error(error);
     }
   };
 
   return (
     <div>
-      <form onSubmit={handleSubmit}>
-        <h2>Add Expense</h2>
+      <h2 className="text-xl font-bold mb-4">Add Expense</h2>
 
-        <input
-          type="number"
-          placeholder="Amount"
-          value={form.amount}
-          onChange={(e) => setForm({ ...form, amount: e.target.value })}
-        />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Amount */}
+        <div className="flex flex-col gap-1">
+          <input
+            type="number"
+            placeholder="Amount"
+            value={form.amount}
+            onChange={(e) => setForm({ ...form, amount: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+        </div>
 
-        <input
-          type="text"
-          placeholder="Description"
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-        />
+        {/* Description */}
+        <div className="flex flex-col gap-1">
+          <input
+            type="text"
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+        </div>
 
-        <input
-          type="date"
-          value={form.date}
-          onChange={(e) => setForm({ ...form, date: e.target.value })}
-        />
+        {/* Date */}
+        <div className="flex flex-col gap-1">
+          <input
+            type="date"
+            value={form.date}
+            onChange={(e) => setForm({ ...form, date: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
+          />
+        </div>
 
-        <select
-          value={form.category_id}
-          onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-        >
-          <option value="">Select Category</option>
+        {/* Category */}
+        <div className="flex flex-col gap-1">
+          <select
+            value={form.category_id}
+            onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
+          >
+            <option value="">Select Category</option>
 
-          {localCategories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
+            {localCategories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
 
-          <option value="add-new">+ Add New Category</option>
-        </select>
-        {/* Inline category creation */}
+            <option value="add-new">+ Add New Category</option>
+          </select>
+        </div>
+
+        {/* New Category Input */}
         {form.category_id === "add-new" && (
-          <div>
+          <div className="flex flex-col gap-1">
             <input
               type="text"
               placeholder="New category name"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
+              className="w-full border border-yellow-300 bg-yellow-50 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
         )}
-        <button type="submit">Add Expense</button>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 font-medium cursor-pointer"
+        >
+          Add Expense
+        </button>
       </form>
     </div>
   );
