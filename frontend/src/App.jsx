@@ -5,29 +5,30 @@ import { getCurrentUser, logout } from "./api/authApi";
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
 import ExpenseFilter from "./components/ExpenseFilter";
-import LoginForm from "./components/LoginForm";
-import RegisterForm from "./components/RegisterForm";
+
+import HomePage from "./components/HomePage";
+import LoginModal from "./components/modals/LoginModal";
+import RegisterModal from "./components/modals/RegisterModal";
 
 function App() {
   const [user, setUser] = useState(null);
-  const [authView, setAuthView] = useState("login");
+  const [modal, setModal] = useState(null); // "login" | "register" | null
 
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
+
   const [filters, setFilters] = useState({
     category_id: "",
     startDate: "",
     endDate: "",
   });
 
-  // Check auth on load
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await getCurrentUser();
         setUser(res.data);
 
-        // only fetch data if authenticated
         fetchExpenses();
         fetchCategories();
       } catch {
@@ -55,26 +56,29 @@ function App() {
       setExpenses([]);
       setCategories([]);
     } catch (err) {
-      console.error("Logout failed", err);
+      console.error(err);
     }
   };
 
-  // Expense handlers
   const handleExpenseAdded = (newExpense) => {
     setExpenses((prev) => [newExpense, ...prev]);
   };
 
   const handleDeleteExpense = (id) => {
-    setExpenses((prev) => prev.filter((exp) => exp.id !== id));
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
   };
 
   const handleUpdateExpense = (updated) => {
-    setExpenses((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+    setExpenses((prev) =>
+      prev.map((e) => (e.id === updated.id ? updated : e))
+    );
   };
 
-  // Filtering
   const filteredExpenses = expenses.filter((exp) => {
-    if (filters.category_id && exp.category_id !== Number(filters.category_id))
+    if (
+      filters.category_id &&
+      exp.category_id !== Number(filters.category_id)
+    )
       return false;
 
     if (filters.startDate && exp.date < filters.startDate) return false;
@@ -91,50 +95,92 @@ function App() {
     });
   };
 
-  // AUTH GATE
+  // =======================
+  // AUTH VIEW (Home + Modals)
+  // =======================
   if (!user) {
     return (
-      <div>
-        {authView === "login" ? (
-          <LoginForm
-            onLoginSuccess={setUser}
-            onSwitchToRegister={() => setAuthView("register")}
-          />
-        ) : (
-          <RegisterForm
-            onRegisterSuccess={() => setAuthView("login")}
-            onSwitchToLogin={() => setAuthView("login")}
+      <>
+        <HomePage onOpenLogin={() => setModal("login")} />
+
+        {modal === "login" && (
+          <LoginModal
+            onClose={() => setModal(null)}
+            onLoginSuccess={(data) => {
+              setUser(data);
+              setModal(null);
+              fetchExpenses();
+              fetchCategories();
+            }}
+            onSwitchToRegister={() => setModal("register")}
           />
         )}
-      </div>
+
+        {modal === "register" && (
+          <RegisterModal
+            onClose={() => setModal(null)}
+            onRegisterSuccess={() => setModal("login")}
+            onSwitchToLogin={() => setModal("login")}
+          />
+        )}
+      </>
     );
   }
 
-  // MAIN APP
+  // =======================
+  // MAIN APP (Dashboard)
+  // =======================
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-purple-600">Expense Tracker</h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <nav className="bg-purple-600 text-white px-8 py-4 flex justify-between items-center shadow-md">
+        <h1 className="text-2xl font-bold">Expense Tracker</h1>
 
-      <button onClick={handleLogout}>Logout</button>
+        <div className="flex items-center gap-4">
+          <span className="text-sm">{user?.email}</span>
 
-      <ExpenseForm
-        onExpenseAdded={handleExpenseAdded}
-        categories={categories}
-        onCategoryAdded={(newCat) => setCategories((prev) => [...prev, newCat])}
-      />
+          <button
+            onClick={handleLogout}
+            className="bg-white text-purple-600 px-4 py-1 rounded-lg text-sm font-medium hover:bg-purple-50 cursor-pointer"
+          >
+            Logout
+          </button>
+        </div>
+      </nav>
 
-      <ExpenseFilter
-        filters={filters}
-        categories={categories}
-        onFilterChange={setFilters}
-        onClearFilters={clearFilters}
-      />
+      {/* Main */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Form */}
+          <div className="md:col-span-1 bg-white p-4 rounded-xl shadow-sm">
+            <ExpenseForm
+              onExpenseAdded={handleExpenseAdded}
+              categories={categories}
+              onCategoryAdded={(newCat) => setCategories((prev) => [...prev, newCat])}
+            />
+          </div>
 
-      <ExpenseList
-        expenses={filteredExpenses}
-        onDeleteExpense={handleDeleteExpense}
-        onUpdateExpense={handleUpdateExpense}
-      />
+          {/* List */}
+          <div className="md:col-span-2 space-y-6">
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              <ExpenseFilter
+                filters={filters}
+                categories={categories}
+                onFilterChange={setFilters}
+                onClearFilters={clearFilters}
+              />
+            </div>
+
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              <ExpenseList
+                expenses={filteredExpenses}
+                onDeleteExpense={handleDeleteExpense}
+                onUpdateExpense={handleUpdateExpense}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
