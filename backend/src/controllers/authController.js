@@ -41,16 +41,14 @@ const login = async (req, res) => {
         error: "Invalid credentials",
       });
     }
-    const token = jwt.sign(
-      { id: user.id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
     // set cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return res.status(200).json({
@@ -69,7 +67,11 @@ const login = async (req, res) => {
 };
 // 3. LOGOUT
 const logout = async (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
   return res.status(200).json({
     data: "Logged out successfully",
     error: null,
@@ -77,7 +79,6 @@ const logout = async (req, res) => {
 };
 
 const getMe = async (req, res) => {
-
   const User = await authModel.findUserById(req.user.id);
   if (!User) {
     return res.status(404).json({
@@ -96,8 +97,8 @@ const getMe = async (req, res) => {
 };
 
 export default {
-    register,
-    login,
-    logout,
-    getMe,
+  register,
+  login,
+  logout,
+  getMe,
 };
