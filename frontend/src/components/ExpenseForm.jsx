@@ -32,6 +32,7 @@ function ExpenseForm({ onExpenseAdded, categories: propCategories }) {
         const newCategory = categoryRes.data;
 
         setLocalCategories((prev) => [...prev, newCategory]);
+        onCategoryAdded(newCategory);
         categoryId = newCategory.id;
       }
 
