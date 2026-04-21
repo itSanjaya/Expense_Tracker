@@ -2,8 +2,7 @@
 
 A full-stack expense tracking web application built with **Node.js**, **React**, and **PostgreSQL**. Track your daily expenses, manage categories, filter by date and category, and stay on top of your finances.
 
-**Live Demo:** [https://expense-tracker-sigma-two-37.vercel.app](https://expense-tracker-sigma-two-37.vercel.app)
-
+**Live Demo:** [https://trackerexpenses.vercel.app/](https://trackerexpenses.vercel.app/)
 ---
 
 ## Features
@@ -271,8 +270,8 @@ Click the **Fork** button at the top right of this page.
 ### 2. Clone your fork
 
 ```bash
-git clone https://github.com/your-username/expense-tracker.git
-cd expense-tracker
+git clone https://github.com/itSanjaya/Expense_Tracker.git
+cd Expense_Tracker
 ```
 
 ### 3. Create a feature branch
