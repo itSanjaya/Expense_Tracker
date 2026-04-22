@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { getExpenses, getCategories } from "./api/expenseApi";
 import { getCurrentUser, logout } from "./api/authApi";
+import { getBudgets } from "./api/budgetApi";
 
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
 import ExpenseFilter from "./components/ExpenseFilter";
+import BudgetManager from "./components/BudgetManager";
+import BudgetProgress from "./components/BudgetProgress";
 
 import HomePage from "./components/HomePage";
 import LoginModal from "./components/modals/LoginModal";
@@ -12,10 +15,11 @@ import RegisterModal from "./components/modals/RegisterModal";
 
 function App() {
   const [user, setUser] = useState(null);
-  const [modal, setModal] = useState(null); // "login" | "register" | null
+  const [modal, setModal] = useState(null);
 
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [budgets, setBudgets] = useState([]);
 
   const [filters, setFilters] = useState({
     category_id: "",
@@ -23,14 +27,36 @@ function App() {
     endDate: "",
   });
 
+  const getCurrentMonth = () => {
+    return new Date().toISOString().split("T")[0];
+  };
+
+  // =========================
+  // MASTER REFRESH FUNCTION
+  // =========================
+  const refreshData = async () => {
+    const month = getCurrentMonth();
+
+    const [expenseRes, categoryRes, budgetRes] = await Promise.all([
+      getExpenses(),
+      getCategories(),
+      getBudgets(month),
+    ]);
+
+    setExpenses(expenseRes.data);
+    setCategories(categoryRes.data);
+    setBudgets(budgetRes.data.data || []);
+  };
+
+  // =========================
+  // AUTH CHECK
+  // =========================
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await getCurrentUser();
         setUser(res.data);
-
-        fetchExpenses();
-        fetchCategories();
+        await refreshData();
       } catch {
         setUser(null);
       }
@@ -39,29 +65,23 @@ function App() {
     checkAuth();
   }, []);
 
-  const fetchExpenses = async () => {
-    const res = await getExpenses();
-    setExpenses(res.data);
-  };
-
-  const fetchCategories = async () => {
-    const res = await getCategories();
-    setCategories(res.data);
-  };
-
   const handleLogout = async () => {
     try {
       await logout();
       setUser(null);
       setExpenses([]);
       setCategories([]);
+      setBudgets([]);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleExpenseAdded = (newExpense) => {
-    setExpenses((prev) => [newExpense, ...prev]);
+  // =========================
+  // EXPENSE HANDLERS
+  // =========================
+  const handleExpenseAdded = async () => {
+    await refreshData();
   };
 
   const handleDeleteExpense = (id) => {
@@ -74,6 +94,9 @@ function App() {
     );
   };
 
+  // =========================
+  // FILTER LOGIC
+  // =========================
   const filteredExpenses = expenses.filter((exp) => {
     if (
       filters.category_id &&
@@ -95,9 +118,9 @@ function App() {
     });
   };
 
-  // =======================
-  // AUTH VIEW (Home + Modals)
-  // =======================
+  // =========================
+  // AUTH VIEW
+  // =========================
   if (!user) {
     return (
       <>
@@ -106,11 +129,10 @@ function App() {
         {modal === "login" && (
           <LoginModal
             onClose={() => setModal(null)}
-            onLoginSuccess={(data) => {
+            onLoginSuccess={async (data) => {
               setUser(data);
               setModal(null);
-              fetchExpenses();
-              fetchCategories();
+              await refreshData();
             }}
             onSwitchToRegister={() => setModal("register")}
           />
@@ -127,9 +149,9 @@ function App() {
     );
   }
 
-  // =======================
-  // MAIN APP (Dashboard)
-  // =======================
+  // =========================
+  // DASHBOARD
+  // =========================
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
@@ -148,7 +170,22 @@ function App() {
         </div>
       </nav>
 
-      {/* Main */}
+      {/* Budget Section */}
+      <div className="max-w-6xl mx-auto px-6 pt-6 space-y-4">
+        <BudgetManager
+          categories={categories}
+          budgets={budgets}
+          setBudgets={setBudgets}
+        />
+
+        <BudgetProgress
+          budgets={budgets}
+          expenses={expenses}
+          categories={categories}
+        />
+      </div>
+
+      {/* Main Layout */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Form */}
@@ -156,7 +193,6 @@ function App() {
             <ExpenseForm
               onExpenseAdded={handleExpenseAdded}
               categories={categories}
-              onCategoryAdded={(newCat) => setCategories((prev) => [...prev, newCat])}
             />
           </div>
 
