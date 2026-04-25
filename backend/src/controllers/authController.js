@@ -61,7 +61,7 @@ const login = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       data: null,
-      error: "Server error",
+      error: error.message,
     });
   }
 };

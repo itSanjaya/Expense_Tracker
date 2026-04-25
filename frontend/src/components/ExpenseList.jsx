@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { deleteExpense, updateExpense } from "../api/expenseApi";
 import ConfirmModal from "./modals/ConfirmModal";
+import exportToCSV from "../utils/exportToCSV";
 
-function ExpenseList({
-  expenses = [],
-  onDeleteExpense,
-  onUpdateExpense,
-}) {
+function ExpenseList({ expenses = [], onDeleteExpense, onUpdateExpense }) {
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -61,12 +58,22 @@ function ExpenseList({
 
   return (
     <div>
-      <h2 className="text-lg font-bold mb-4">Expenses</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">Expenses</h2>
+        <button
+          onClick={() => {
+            const month = new Date().toISOString().slice(0, 7);
+            exportToCSV(expenses, `expenses-${month}.csv`);
+          }}
+          disabled={expenses.length === 0}
+          className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition cursor-pointer"
+        >
+          ⬇️ Export CSV
+        </button>
+      </div>
 
       {expenses.length === 0 && (
-        <p className="text-gray-500 text-center py-6">
-          No expenses found
-        </p>
+        <p className="text-gray-500 text-center py-6">No expenses found</p>
       )}
 
       <div className="space-y-3">
