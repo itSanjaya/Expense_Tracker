@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { addExpense, addCategory } from "../api/expenseApi";
 
-function ExpenseForm({ onExpenseAdded, categories: propCategories }) {
+function ExpenseForm({ onExpenseAdded, categories: propCategories, onCategoryAdded }) {
   const [form, setForm] = useState({
     amount: "",
     description: "",
@@ -32,6 +32,7 @@ function ExpenseForm({ onExpenseAdded, categories: propCategories }) {
         const newCategory = categoryRes.data;
 
         setLocalCategories((prev) => [...prev, newCategory]);
+        onCategoryAdded(newCategory);
         categoryId = newCategory.id;
       }
 
