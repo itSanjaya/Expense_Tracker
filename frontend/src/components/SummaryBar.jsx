@@ -24,7 +24,7 @@ function SummaryBar({ expenses }) {
     { label: "Spent This Month", value: `Rs ${totalThisMonth.toFixed(2)}`, icon: "💸", color: "from-violet-500 to-purple-600" },
     { label: "Total All Time", value: `Rs ${totalAllTime.toFixed(2)}`, icon: "🧾", color: "from-blue-500 to-cyan-600" },
     { label: "Expenses", value: count, icon: "📦", color: "from-emerald-500 to-green-600" },
-    { label: "Top Category", value: topCategory ? `${topCategory[0]} ($${topCategory[1].toFixed(2)})` : "—", icon: "🔥", color: "from-orange-500 to-red-500" },
+    { label: "Top Category", value: topCategory ? `${topCategory[0]} (Rs ${topCategory[1].toFixed(2)})` : "—", icon: "🔥", color: "from-orange-500 to-red-500" },
   ];
 
   return (
