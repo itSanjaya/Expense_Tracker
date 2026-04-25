@@ -8,6 +8,7 @@ import ExpenseList from "./components/ExpenseList";
 import ExpenseFilter from "./components/ExpenseFilter";
 import BudgetManager from "./components/BudgetManager";
 import BudgetProgress from "./components/BudgetProgress";
+import SummaryBar from "./components/SummaryBar";
 
 import HomePage from "./components/HomePage";
 import LoginModal from "./components/modals/LoginModal";
@@ -207,6 +208,7 @@ function App() {
               />
             </div>
 
+            <SummaryBar expenses={filteredExpenses} />
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <ExpenseList
                 expenses={filteredExpenses}
