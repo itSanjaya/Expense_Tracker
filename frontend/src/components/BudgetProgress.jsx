@@ -1,8 +1,14 @@
-function BudgetProgress({ budgets, expenses, categories }) {
+function BudgetProgress({ budgets, expenses, categories, selectedMonth }) {
+
+  // Only count expenses that belong to the selected month
+  const monthlyExpenses = expenses.filter((e) => {
+    return e.date.slice(0, 7) === selectedMonth; // "2026-04-10".slice(0,7) === "2026-04"
+  });
+
   // calculate spent per category
   const spentMap = {};
 
-  expenses.forEach((e) => {
+  monthlyExpenses.forEach((e) => {
     const catId = e.category_id;
     spentMap[catId] = (spentMap[catId] || 0) + Number(e.amount);
   });

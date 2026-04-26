@@ -21,6 +21,9 @@ function App() {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [budgets, setBudgets] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(
+    new Date().toISOString().slice(0, 7),
+  );
 
   const [filters, setFilters] = useState({
     category_id: "",
@@ -29,19 +32,17 @@ function App() {
   });
 
   const getCurrentMonth = () => {
-    return new Date().toISOString().split("T")[0];
+    return new Date().toISOString().slice(0, 7);
   };
 
   // =========================
   // MASTER REFRESH FUNCTION
   // =========================
   const refreshData = async () => {
-    const month = getCurrentMonth();
-
     const [expenseRes, categoryRes, budgetRes] = await Promise.all([
       getExpenses(),
       getCategories(),
-      getBudgets(month),
+      getBudgets(`${selectedMonth}-01`), // "2026-04" → "2026-04-01"
     ]);
 
     setExpenses(expenseRes.data);
@@ -90,19 +91,14 @@ function App() {
   };
 
   const handleUpdateExpense = (updated) => {
-    setExpenses((prev) =>
-      prev.map((e) => (e.id === updated.id ? updated : e))
-    );
+    setExpenses((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
   };
 
   // =========================
   // FILTER LOGIC
   // =========================
   const filteredExpenses = expenses.filter((exp) => {
-    if (
-      filters.category_id &&
-      exp.category_id !== Number(filters.category_id)
-    )
+    if (filters.category_id && exp.category_id !== Number(filters.category_id))
       return false;
 
     if (filters.startDate && exp.date < filters.startDate) return false;
@@ -150,7 +146,7 @@ function App() {
     );
   }
 
-  // =========================
+// =========================
   // DASHBOARD
   // =========================
   return (
@@ -171,33 +167,40 @@ function App() {
         </div>
       </nav>
 
-      {/* Budget Section */}
-      <div className="max-w-6xl mx-auto px-6 pt-6 space-y-4">
-        <BudgetManager
-          categories={categories}
-          budgets={budgets}
-          setBudgets={setBudgets}
-        />
-
-        <BudgetProgress
-          budgets={budgets}
-          expenses={expenses}
-          categories={categories}
-        />
-      </div>
-
       {/* Main Layout */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Form */}
-          <div className="md:col-span-1 bg-white p-4 rounded-xl shadow-sm">
-            <ExpenseForm
-              onExpenseAdded={handleExpenseAdded}
+
+          {/* Left Column — Form + Budget */}
+          <div className="md:col-span-1 space-y-6">
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              <ExpenseForm
+                onExpenseAdded={handleExpenseAdded}
+                categories={categories}
+              />
+            </div>
+
+            <BudgetManager
               categories={categories}
+              budgets={budgets}
+              setBudgets={setBudgets}
+              selectedMonth={selectedMonth}
+              onMonthChange={async (newMonth) => {
+                setSelectedMonth(newMonth);
+                const res = await getBudgets(`${newMonth}-01`);
+                setBudgets(res.data.data || []);
+              }}
+            />
+
+            <BudgetProgress
+              budgets={budgets}
+              expenses={expenses}
+              categories={categories}
+              selectedMonth={selectedMonth}
             />
           </div>
 
-          {/* List */}
+          {/* Right Column — Filter + Summary + Expense List */}
           <div className="md:col-span-2 space-y-6">
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <ExpenseFilter
@@ -209,14 +212,16 @@ function App() {
             </div>
 
             <SummaryBar expenses={filteredExpenses} />
+
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <ExpenseList
-                expenses={expenses}
+                expenses={filteredExpenses}
                 onDeleteExpense={handleDeleteExpense}
                 onUpdateExpense={handleUpdateExpense}
               />
             </div>
           </div>
+
         </div>
       </div>
     </div>
