@@ -1,8 +1,9 @@
 # Expense Tracker
 
-A full-stack expense tracking web application built with **Node.js**, **React**, and **PostgreSQL**. Track your daily expenses, manage categories, filter by date and category, and stay on top of your finances.
+A full-stack expense tracking web application built with **Node.js**, **React**, and **PostgreSQL**. Track daily expenses, set monthly budgets, filter and analyze spending, and export your data — all in one place.
 
 **Live Demo:** [https://trackerexpenses.vercel.app/](https://trackerexpenses.vercel.app/)
+
 ---
 
 ## Features
@@ -13,7 +14,10 @@ A full-stack expense tracking web application built with **Node.js**, **React**,
 - ✏️ **Edit Expenses** — Inline editing directly on the expense card
 - 🗑️ **Delete Expenses** — Delete with a confirmation modal popup
 - 🔍 **Filter Expenses** — Filter by category and date range
-- 👤 **Per-user Data** — Each user only sees their own expenses and categories
+- 📊 **Spending Summary** — See total spent this month, all-time total, expense count, and top category
+- 🎯 **Monthly Budgets** — Set spending limits per category per month with live progress bars
+- ⬇️ **Export to CSV** — Download filtered expenses as a CSV file
+- 👤 **Per-user Data** — Each user only sees their own expenses, categories and budgets
 - 🎨 **Modern UI** — Built with Tailwind CSS with a clean, colorful design
 - 🌐 **Production Ready** — Deployed with Supabase, Render and Vercel
 
@@ -57,40 +61,49 @@ Expense-Tracker/
 ├── backend/
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── db.js               # PostgreSQL connection pool
+│   │   │   └── db.js                  # PostgreSQL connection pool
 │   │   ├── controllers/
-│   │   │   ├── authController.js   # Register, login, logout, getMe
+│   │   │   ├── authController.js      # Register, login, logout, getMe
 │   │   │   ├── categoryController.js
-│   │   │   └── expenseController.js
+│   │   │   ├── expenseController.js
+│   │   │   └── budgetController.js    # Fetch and upsert budgets
 │   │   ├── middleware/
-│   │   │   └── authMiddleware.js   # JWT verification
+│   │   │   └── authMiddleware.js      # JWT verification
 │   │   ├── models/
-│   │   │   ├── authModel.js        # User DB queries
-│   │   │   ├── categoryModel.js    # Category DB queries
-│   │   │   └── expenseModel.js     # Expense DB queries
+│   │   │   ├── authModel.js           # User DB queries
+│   │   │   ├── categoryModel.js       # Category DB queries
+│   │   │   ├── expenseModel.js        # Expense DB queries
+│   │   │   └── budgetModel.js         # Budget DB queries
 │   │   ├── routes/
 │   │   │   ├── authRoutes.js
 │   │   │   ├── categoryRoutes.js
-│   │   │   └── expenseRoutes.js
-│   │   ├── app.js                  # Express app setup
-│   │   └── server.js               # Server entry point
+│   │   │   ├── expenseRoutes.js
+│   │   │   └── budgetRoutes.js
+│   │   ├── app.js                     # Express app setup
+│   │   └── server.js                  # Server entry point
 │   ├── .env
 │   └── package.json
 │
 └── frontend/
     ├── src/
     │   ├── api/
-    │   │   ├── authApi.js          # Auth API calls
-    │   │   └── expenseApi.js       # Expense & category API calls
+    │   │   ├── authApi.js             # Auth API calls
+    │   │   ├── expenseApi.js          # Expense & category API calls
+    │   │   └── budgetApi.js           # Budget API calls
     │   ├── components/
     │   │   ├── modals/
     │   │   │   ├── ConfirmModal.jsx
     │   │   │   ├── LoginModal.jsx
     │   │   │   └── RegisterModal.jsx
-    │   │   ├── ExpenseFilter.jsx
-    │   │   ├── ExpenseForm.jsx
-    │   │   ├── ExpenseList.jsx
-    │   │   └── HomePage.jsx
+    │   │   ├── ExpenseFilter.jsx      # Filter by category and date range
+    │   │   ├── ExpenseForm.jsx        # Add expense form
+    │   │   ├── ExpenseList.jsx        # Expense list with edit/delete + CSV export
+    │   │   ├── SummaryBar.jsx         # Spending summary cards
+    │   │   ├── BudgetManager.jsx      # Set monthly budget limits
+    │   │   ├── BudgetProgress.jsx     # Budget progress bars
+    │   │   └── HomePage.jsx           # Landing page
+    │   ├── utils/
+    │   │   └── exportToCSV.js         # CSV export utility
     │   ├── App.jsx
     │   └── main.jsx
     ├── .env
@@ -132,6 +145,19 @@ CREATE TABLE expenses (
   CONSTRAINT fk_user_expense FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
+
+-- Budgets table
+CREATE TABLE budgets (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  category_id INTEGER NOT NULL,
+  month DATE NOT NULL,
+  limit_amount NUMERIC(10,2) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_user_budget FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_category_budget FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+  CONSTRAINT unique_user_category_month UNIQUE (user_id, category_id, month)
+);
 ```
 
 ---
@@ -147,13 +173,13 @@ CREATE TABLE expenses (
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/expense-tracker.git
-cd expense-tracker
+git clone https://github.com/itSanjaya/Expense_Tracker.git
+cd Expense_Tracker
 ```
 
 ### 2. Set up the database
 
-Create a PostgreSQL database and run the SQL schema above to create the tables.
+Create a PostgreSQL database and run the SQL schema above to create all four tables.
 
 ### 3. Set up the backend
 
@@ -202,7 +228,7 @@ The frontend will run on `http://localhost:5173`
 
 ---
 
-##  API Endpoints
+## API Endpoints
 
 ### Auth Routes
 | Method | Endpoint | Description | Auth Required |
@@ -226,9 +252,15 @@ The frontend will run on `http://localhost:5173`
 | GET | `/categories` | Get all categories for user | Yes |
 | POST | `/categories` | Create a new category | Yes |
 
+### Budget Routes
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/budgets?month=YYYY-MM-DD` | Get budgets for a month | Yes |
+| POST | `/budgets` | Create or update a budget | Yes |
+
 ---
 
-##  Deployment
+## Deployment
 
 ### Database — Supabase
 - Run the database schema SQL in the SQL Editor
@@ -236,30 +268,30 @@ The frontend will run on `http://localhost:5173`
 
 ### Backend — Render
 - Connect your GitHub repository
--  Set **Root Directory** to `backend`
--  Set **Build Command** to `npm install`
--  Set **Start Command** to `node src/server.js`-
--  Add environment variables:
-   ```
-   DATABASE_URL=your_supabase_connection_string
-   JWT_SECRET=your_jwt_secret
-   NODE_ENV=production
-   CLIENT_URL=your_vercel_frontend_url
-   PORT=5000
-   ```
+- Set **Root Directory** to `backend`
+- Set **Build Command** to `npm install`
+- Set **Start Command** to `node src/server.js`
+- Add environment variables:
+  ```
+    DATABASE_URL=your_supabase_connection_string
+    JWT_SECRET=your_jwt_secret
+    NODE_ENV=production
+    CLIENT_URL=your_vercel_frontend_url
+    PORT=5000
+  ```
 
 ### Frontend — Vercel
 - Import your GitHub repository
 - Set **Root Directory** to `frontend`
 - Add environment variable:
-   ```
-   VITE_API_URL=your_render_backend_url
-   ```
-5. Deploy!
+  ```
+  VITE_API_URL=your_render_backend_url
+  ```
+- Deploy!
 
 ---
 
-##  Contributing
+## Contributing
 
 Contributions are welcome! Here's how to get started:
 
@@ -310,13 +342,13 @@ Then open a Pull Request on GitHub with a clear description of what you changed 
 
 ---
 
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 Built with ❤️ as a full-stack learning project by [Sanjaya](https://github.com/itSanjaya).
 
