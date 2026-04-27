@@ -9,6 +9,7 @@ import ExpenseFilter from "./components/ExpenseFilter";
 import BudgetManager from "./components/BudgetManager";
 import BudgetProgress from "./components/BudgetProgress";
 import SummaryBar from "./components/SummaryBar";
+import ExpenseCharts from "./components/ExpenseCharts";
 
 import HomePage from "./components/HomePage";
 import LoginModal from "./components/modals/LoginModal";
@@ -146,7 +147,7 @@ function App() {
     );
   }
 
-// =========================
+  // =========================
   // DASHBOARD
   // =========================
   return (
@@ -170,7 +171,6 @@ function App() {
       {/* Main Layout */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
           {/* Left Column — Form + Budget */}
           <div className="md:col-span-1 space-y-6">
             <div className="bg-white p-4 rounded-xl shadow-sm">
@@ -221,8 +221,12 @@ function App() {
               />
             </div>
           </div>
-
         </div>
+      </div>
+      {/* Charts Section */}
+      <div className="max-w-6xl mx-auto px-6 pb-12">
+        <h2 className="text-xl font-bold text-gray-700 mb-4">📊 Analytics</h2>
+        <ExpenseCharts expenses={expenses} />
       </div>
     </div>
   );
