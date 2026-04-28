@@ -1,13 +1,13 @@
 # Expense Tracker
-
+ 
 A full-stack expense tracking web application built with **Node.js**, **React**, and **PostgreSQL**. Track daily expenses, set monthly budgets, filter and analyze spending, and export your data — all in one place.
-
+ 
 **Live Demo:** [https://trackerexpenses.vercel.app/](https://trackerexpenses.vercel.app/)
-
+ 
 ---
-
+ 
 ## Features
-
+ 
 - 🔐 **Authentication** — Register, login and logout with JWT stored in httpOnly cookies
 - 💸 **Add Expenses** — Log expenses with amount, description, date and category
 - 🗂️ **Manage Categories** — Create new categories inline while adding an expense
@@ -17,18 +17,18 @@ A full-stack expense tracking web application built with **Node.js**, **React**,
 - 📊 **Spending Summary** — See total spent this month, all-time total, expense count, and top category
 - 🎯 **Monthly Budgets** — Set spending limits per category per month with live progress bars
 - ⬇️ **Export to CSV** — Download filtered expenses as a CSV file
+- ✅ **Input Validation** — Zod schemas on both frontend and backend for robust data integrity
 - 👤 **Per-user Data** — Each user only sees their own expenses, categories and budgets
-- 🎨 **Modern UI** — Built with Tailwind CSS with a clean, colorful design
+- 🎨 **Modern UI** — Built with Tailwind CSS v4 with a clean, colorful design
 - 🌐 **Production Ready** — Deployed with Supabase, Render and Vercel
-
 ---
-
+ 
 ## Tech Stack
-
+ 
 ### Backend
 | Technology | Purpose |
 |------------|---------|
-| Node.js | Runtime environment |
+| Node.js (ES Modules) | Runtime environment |
 | Express.js | Web framework |
 | PostgreSQL | Relational database |
 | pg (node-postgres) | PostgreSQL client |
@@ -36,25 +36,27 @@ A full-stack expense tracking web application built with **Node.js**, **React**,
 | jsonwebtoken | JWT authentication |
 | cookie-parser | Cookie handling |
 | cors | Cross-origin resource sharing |
-
+| zod | Request body validation |
+ 
 ### Frontend
 | Technology | Purpose |
 |------------|---------|
 | React (Vite) | UI framework |
-| Tailwind CSS | Styling |
+| Tailwind CSS v4 | Styling |
 | Axios | HTTP client |
-
+| zod | Form validation |
+ 
 ### Deployment
 | Service | Purpose |
 |---------|---------|
 | Supabase | PostgreSQL database hosting |
 | Render | Backend hosting |
 | Vercel | Frontend hosting |
-
+ 
 ---
-
+ 
 ## Project Structure
-
+ 
 ```
 Expense-Tracker/
 │
@@ -68,7 +70,8 @@ Expense-Tracker/
 │   │   │   ├── expenseController.js
 │   │   │   └── budgetController.js    # Fetch and upsert budgets
 │   │   ├── middleware/
-│   │   │   └── authMiddleware.js      # JWT verification
+│   │   │   ├── authMiddleware.js      # JWT verification → req.user
+│   │   │   └── validate.js            # Reusable Zod validation middleware
 │   │   ├── models/
 │   │   │   ├── authModel.js           # User DB queries
 │   │   │   ├── categoryModel.js       # Category DB queries
@@ -79,6 +82,8 @@ Expense-Tracker/
 │   │   │   ├── categoryRoutes.js
 │   │   │   ├── expenseRoutes.js
 │   │   │   └── budgetRoutes.js
+│   │   ├── validation/
+│   │   │   └── schemas.js             # Zod schemas (auth, expenses, categories, budgets)
 │   │   ├── app.js                     # Express app setup
 │   │   └── server.js                  # Server entry point
 │   ├── .env
@@ -87,33 +92,37 @@ Expense-Tracker/
 └── frontend/
     ├── src/
     │   ├── api/
-    │   │   ├── authApi.js             # Auth API calls
-    │   │   ├── expenseApi.js          # Expense & category API calls
-    │   │   └── budgetApi.js           # Budget API calls
+    │   │   ├── authApi.js             # login, register, logout, getCurrentUser
+    │   │   ├── expenseApi.js          # expenses & categories API calls
+    │   │   └── budgetApi.js           # budget API calls
     │   ├── components/
     │   │   ├── modals/
     │   │   │   ├── ConfirmModal.jsx
     │   │   │   ├── LoginModal.jsx
     │   │   │   └── RegisterModal.jsx
     │   │   ├── ExpenseFilter.jsx      # Filter by category and date range
-    │   │   ├── ExpenseForm.jsx        # Add expense form
+    │   │   ├── ExpenseForm.jsx        # Add expense form with inline category creation
     │   │   ├── ExpenseList.jsx        # Expense list with edit/delete + CSV export
     │   │   ├── SummaryBar.jsx         # Spending summary cards
-    │   │   ├── BudgetManager.jsx      # Set monthly budget limits
-    │   │   ├── BudgetProgress.jsx     # Budget progress bars
+    │   │   ├── BudgetManager.jsx      # Set monthly budget limits with month picker
+    │   │   ├── BudgetProgress.jsx     # Budget progress bars (green/yellow/red)
     │   │   └── HomePage.jsx           # Landing page
+    │   ├── hooks/
+    │   │   └── useZodForm.js          # Lightweight Zod-backed form validation hook
     │   ├── utils/
     │   │   └── exportToCSV.js         # CSV export utility
-    │   ├── App.jsx
+    │   ├── validation/
+    │   │   └── schemas.js             # Zod schemas (frontend)
+    │   ├── App.jsx                    # Root component, single source of truth for state
     │   └── main.jsx
     ├── .env
     └── package.json
 ```
-
+ 
 ---
-
+ 
 ## Database Schema
-
+ 
 ```sql
 -- Users table
 CREATE TABLE users (
@@ -122,7 +131,7 @@ CREATE TABLE users (
   password TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Categories table
 CREATE TABLE categories (
   id SERIAL PRIMARY KEY,
@@ -132,7 +141,7 @@ CREATE TABLE categories (
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT unique_user_category UNIQUE (user_id, name)
 );
-
+ 
 -- Expenses table
 CREATE TABLE expenses (
   id SERIAL PRIMARY KEY,
@@ -145,7 +154,7 @@ CREATE TABLE expenses (
   CONSTRAINT fk_user_expense FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
-
+ 
 -- Budgets table
 CREATE TABLE budgets (
   id SERIAL PRIMARY KEY,
@@ -159,35 +168,34 @@ CREATE TABLE budgets (
   CONSTRAINT unique_user_category_month UNIQUE (user_id, category_id, month)
 );
 ```
-
+ 
 ---
-
+ 
 ## Getting Started
-
+ 
 ### Prerequisites
-
+ 
 - Node.js v18+
 - PostgreSQL (local or cloud)
 - Git
-
 ### 1. Clone the repository
-
+ 
 ```bash
 git clone https://github.com/itSanjaya/Expense_Tracker.git
 cd Expense_Tracker
 ```
-
+ 
 ### 2. Set up the database
-
+ 
 Create a PostgreSQL database and run the SQL schema above to create all four tables.
-
+ 
 ### 3. Set up the backend
-
+ 
 ```bash
 cd backend
 npm install
 ```
-
+ 
 Create a `.env` file in the `backend/` folder:
 
 ```env
