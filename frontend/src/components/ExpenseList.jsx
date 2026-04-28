@@ -48,7 +48,11 @@ function ExpenseList({ expenses = [], onDeleteExpense, onUpdateExpense }) {
 
   const handleSave = async (id) => {
     try {
-      const res = await updateExpense(id, editForm);
+      const res = await updateExpense(id, {
+        ...editForm,
+        amount: Number(editForm.amount),
+        category_id: Number(editForm.category_id),
+      });
       onUpdateExpense(res.data);
       setEditingId(null);
     } catch (error) {

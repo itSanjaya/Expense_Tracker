@@ -1,6 +1,8 @@
+// src/routes/budgetRoutes.js
 import express from "express";
 import budgetController from "../controllers/budgetController.js";
-import authMiddleware from "../middleware/authMiddleware.js";
+import { validate } from "../middleware/validate.js";
+import { upsertBudgetSchema } from "../validation/schemas.js";
 
 const router = express.Router();
 
@@ -8,6 +10,6 @@ const router = express.Router();
 router.get("/", budgetController.fetchBudget);
 
 // Create or update budget
-router.post("/", budgetController.upsertBudget);
+router.post("/", validate(upsertBudgetSchema), budgetController.upsertBudget);
 
 export default router;
