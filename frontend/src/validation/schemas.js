@@ -59,3 +59,35 @@ export const budgetSchema = z.object({
       message: "Limit must be a positive number",
     }),
 });
+
+// ─── Account Settings ───────────────────────────────────────────────────────
+
+export const updateProfileSchema = z.object({
+  displayName: z.string().max(100, "Name too long").optional(),
+  phone: z
+    .string()
+    .max(20, "Phone too long")
+    .regex(/^[+\d\s\-()]*$/, "Invalid phone number")
+    .optional(),
+  address: z.string().max(255, "Address too long").optional(),
+  avatarColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color")
+    .optional(),
+});
+ 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(6, "New password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your new password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+ 
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});
+ 

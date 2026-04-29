@@ -93,7 +93,7 @@ function ProfileTab({ user, onSave }) {
         {/* Color picker */}
         <div>
           <p className="text-xs text-gray-500 text-center mb-2">Avatar Color</p>
-          <div className="flex flex-wrap gap-2 justify-center max-w-[220px]">
+          <div className="flex flex-wrap gap-2 justify-center max-w-\[220px]\">
             {AVATAR_COLORS.map((color) => (
               <button
                 key={color}
