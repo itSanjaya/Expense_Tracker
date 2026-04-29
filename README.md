@@ -129,6 +129,10 @@ CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   email TEXT NOT NULL UNIQUE,
   password TEXT NOT NULL,
+  display_name TEXT,
+  phone TEXT,
+  address TEXT,
+  avatar_color TEXT DEFAULT '#7C3AED',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
  
