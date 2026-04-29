@@ -65,6 +65,7 @@ Expense-Tracker/
 │   │   ├── config/
 │   │   │   └── db.js                  # PostgreSQL connection pool
 │   │   ├── controllers/
+│   │   │   ├── accountController.js   # Get profile, update settings, change password, delete account
 │   │   │   ├── authController.js      # Register, login, logout, getMe
 │   │   │   ├── categoryController.js
 │   │   │   ├── expenseController.js
@@ -73,11 +74,13 @@ Expense-Tracker/
 │   │   │   ├── authMiddleware.js      # JWT verification → req.user
 │   │   │   └── validate.js            # Reusable Zod validation middleware
 │   │   ├── models/
+│   │   │   ├── accountModel.js        # Account DB queries (get profile, update settings, change password, delete account)
 │   │   │   ├── authModel.js           # User DB queries
 │   │   │   ├── categoryModel.js       # Category DB queries
 │   │   │   ├── expenseModel.js        # Expense DB queries
 │   │   │   └── budgetModel.js         # Budget DB queries
 │   │   ├── routes/
+│   │   │   ├── accountRoutes.js       # Get profile, update settings, change password, delete account
 │   │   │   ├── authRoutes.js
 │   │   │   ├── categoryRoutes.js
 │   │   │   ├── expenseRoutes.js
@@ -93,10 +96,12 @@ Expense-Tracker/
     ├── src/
     │   ├── api/
     │   │   ├── authApi.js             # login, register, logout, getCurrentUser
+    │   │   ├── accountApi.js          # get profile, update settings, change password, delete account
     │   │   ├── expenseApi.js          # expenses & categories API calls
     │   │   └── budgetApi.js           # budget API calls
     │   ├── components/
     │   │   ├── modals/
+    │   │   │   ├── AccountSettingsModal.jsx  # Update profile, change password, delete account
     │   │   │   ├── ConfirmModal.jsx
     │   │   │   ├── LoginModal.jsx
     │   │   │   └── RegisterModal.jsx
