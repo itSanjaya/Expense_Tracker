@@ -7,6 +7,7 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import authMiddleware from "./middleware/authMiddleware.js";
 import budgetRoutes from "./routes/budgetRoutes.js";
+import accountRoutes from "./routes/accountRoutes.js";
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.use("/auth", authRoutes);
 app.use("/expenses", authMiddleware, expenseRoutes);
 app.use("/categories", authMiddleware, categoryRoutes);
 app.use("/budgets", authMiddleware, budgetRoutes);
+app.use("/account", accountRoutes);
 
 export default app;

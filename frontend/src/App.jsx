@@ -10,6 +10,8 @@ import BudgetManager from "./components/BudgetManager";
 import BudgetProgress from "./components/BudgetProgress";
 import SummaryBar from "./components/SummaryBar";
 import ExpenseCharts from "./components/ExpenseCharts";
+import Navbar from "./components/Navbar";
+import SettingsPage from "./components/SettingsPage";
 
 import HomePage from "./components/HomePage";
 import LoginModal from "./components/modals/LoginModal";
@@ -18,6 +20,8 @@ import RegisterModal from "./components/modals/RegisterModal";
 function App() {
   const [user, setUser] = useState(null);
   const [modal, setModal] = useState(null);
+  // "dashboard" | "settings" | "developer"
+  const [page, setPage] = useState("dashboard");
 
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -32,10 +36,6 @@ function App() {
     endDate: "",
   });
 
-  const getCurrentMonth = () => {
-    return new Date().toISOString().slice(0, 7);
-  };
-
   // =========================
   // MASTER REFRESH FUNCTION
   // =========================
@@ -43,7 +43,7 @@ function App() {
     const [expenseRes, categoryRes, budgetRes] = await Promise.all([
       getExpenses(),
       getCategories(),
-      getBudgets(`${selectedMonth}-01`), // "2026-04" → "2026-04-01"
+      getBudgets(`${selectedMonth}-01`),
     ]);
 
     setExpenses(expenseRes.data);
@@ -58,25 +58,26 @@ function App() {
     const checkAuth = async () => {
       try {
         const res = await getCurrentUser();
-        setUser(res.data);
+        setUser(res.data.data ?? res.data); // handle both { data: { data: user } } and { data: user }
         await refreshData();
       } catch {
         setUser(null);
       }
     };
-
     checkAuth();
   }, []);
 
   const handleLogout = async () => {
     try {
       await logout();
+    } catch (err) {
+      console.error(err);
+    } finally {
       setUser(null);
       setExpenses([]);
       setCategories([]);
       setBudgets([]);
-    } catch (err) {
-      console.error(err);
+      setPage("dashboard");
     }
   };
 
@@ -101,19 +102,13 @@ function App() {
   const filteredExpenses = expenses.filter((exp) => {
     if (filters.category_id && exp.category_id !== Number(filters.category_id))
       return false;
-
     if (filters.startDate && exp.date < filters.startDate) return false;
     if (filters.endDate && exp.date > filters.endDate) return false;
-
     return true;
   });
 
   const clearFilters = () => {
-    setFilters({
-      category_id: "",
-      startDate: "",
-      endDate: "",
-    });
+    setFilters({ category_id: "", startDate: "", endDate: "" });
   };
 
   // =========================
@@ -128,7 +123,7 @@ function App() {
           <LoginModal
             onClose={() => setModal(null)}
             onLoginSuccess={async (data) => {
-              setUser(data);
+              setUser(data.data ?? data);
               setModal(null);
               await refreshData();
             }}
@@ -148,35 +143,43 @@ function App() {
   }
 
   // =========================
+  // SETTINGS PAGE
+  // =========================
+  if (page === "settings" || page === "developer") {
+    return (
+      <>
+        <Navbar user={user} onLogout={handleLogout} onNavigate={setPage} />
+        <SettingsPage
+          user={user}
+          defaultTab={page === "developer" ? "developer" : "profile"}
+          onBack={() => setPage("dashboard")}
+          onProfileSaved={(updated) => setUser((prev) => ({ ...prev, ...updated, email: prev.email }))}
+          onAccountDeleted={() => {
+            setUser(null);
+            setPage("dashboard");
+          }}
+        />
+      </>
+    );
+  }
+
+  // =========================
   // DASHBOARD
   // =========================
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-purple-600 text-white px-8 py-4 flex justify-between items-center shadow-md">
-        <h1 className="text-2xl font-bold">Expense Tracker</h1>
-
-        <div className="flex items-center gap-4">
-          <span className="text-sm">{user?.email}</span>
-
-          <button
-            onClick={handleLogout}
-            className="bg-white text-purple-600 px-4 py-1 rounded-lg text-sm font-medium hover:bg-purple-50 cursor-pointer"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
+      <Navbar user={user} onLogout={handleLogout} onNavigate={setPage} />
 
       {/* Main Layout */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left Column — Form + Budget */}
+          {/* Left Column */}
           <div className="md:col-span-1 space-y-6">
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <ExpenseForm
                 onExpenseAdded={handleExpenseAdded}
                 categories={categories}
+                onCategoryAdded={(cat) => setCategories((prev) => [...prev, cat])}
               />
             </div>
 
@@ -200,7 +203,7 @@ function App() {
             />
           </div>
 
-          {/* Right Column — Filter + Summary + Expense List */}
+          {/* Right Column */}
           <div className="md:col-span-2 space-y-6">
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <ExpenseFilter
@@ -223,6 +226,7 @@ function App() {
           </div>
         </div>
       </div>
+
       {/* Charts Section */}
       <div className="max-w-6xl mx-auto px-6 pb-12">
         <h2 className="text-xl font-bold text-gray-700 mb-4">📊 Analytics</h2>
