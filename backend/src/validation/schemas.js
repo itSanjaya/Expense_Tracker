@@ -84,3 +84,29 @@ export const upsertBudgetSchema = z.object({
     .number({ required_error: "Limit amount is required", invalid_type_error: "Limit amount must be a number" })
     .positive("Limit amount must be greater than 0"),
 });
+
+// ── Account Settings ──────────────────────────────────────────────────────────────
+
+export const updateProfileSchema = z.object({
+  displayName: z.string().max(100, "Name too long").optional(),
+  phone: z
+    .string()
+    .max(20, "Phone too long")
+    .regex(/^[+\d\s\-()]*$/, "Invalid phone number")
+    .optional(),
+  address: z.string().max(255, "Address too long").optional(),
+  avatarColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color hex")
+    .optional(),
+});
+ 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(6, "New password must be at least 6 characters"),
+});
+ 
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, "Password is required to delete account"),
+});
+ 
