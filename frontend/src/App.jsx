@@ -12,15 +12,17 @@ import SummaryBar from "./components/SummaryBar";
 import ExpenseCharts from "./components/ExpenseCharts";
 import Navbar from "./components/Navbar";
 import SettingsPage from "./components/SettingsPage";
+import ToastContainer from "./components/ToastContainer";
 
 import HomePage from "./components/HomePage";
 import LoginModal from "./components/modals/LoginModal";
 import RegisterModal from "./components/modals/RegisterModal";
 
+import { useToast } from "./hooks/useToast";
+
 function App() {
   const [user, setUser] = useState(null);
   const [modal, setModal] = useState(null);
-  // "dashboard" | "settings" | "developer"
   const [page, setPage] = useState("dashboard");
 
   const [expenses, setExpenses] = useState([]);
@@ -29,12 +31,13 @@ function App() {
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toISOString().slice(0, 7),
   );
-
   const [filters, setFilters] = useState({
     category_id: "",
     startDate: "",
     endDate: "",
   });
+
+  const { toasts, toast, dismiss } = useToast();
 
   // =========================
   // MASTER REFRESH FUNCTION
@@ -45,20 +48,19 @@ function App() {
       getCategories(),
       getBudgets(`${selectedMonth}-01`),
     ]);
-
     setExpenses(expenseRes.data);
     setCategories(categoryRes.data);
     setBudgets(budgetRes.data.data || []);
   };
 
   // =========================
-  // AUTH CHECK
+  // AUTH CHECK ON LOAD
   // =========================
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await getCurrentUser();
-        setUser(res.data.data ?? res.data); // handle both { data: { data: user } } and { data: user }
+        setUser(res.data.data ?? res.data);
         await refreshData();
       } catch {
         setUser(null);
@@ -66,6 +68,25 @@ function App() {
     };
     checkAuth();
   }, []);
+
+  // =========================
+  // AUTH HANDLERS
+  // =========================
+  const handleLoginSuccess = async (userData) => {
+    const u = userData.data ?? userData;
+    setUser(u);
+    setModal(null);
+    await refreshData();
+    toast.success(`Welcome back, ${u.display_name || u.email.split("@")[0]}! 👋`);
+  };
+
+  const handleRegisterSuccess = async (userData) => {
+    const u = userData.data ?? userData;
+    setUser(u);
+    setModal(null);
+    await refreshData();
+    toast.success(`Account created! Welcome, ${u.email.split("@")[0]} 🎉`, { duration: 5000 });
+  };
 
   const handleLogout = async () => {
     try {
@@ -86,14 +107,17 @@ function App() {
   // =========================
   const handleExpenseAdded = async () => {
     await refreshData();
+    toast.success("Expense added!");
   };
 
   const handleDeleteExpense = (id) => {
     setExpenses((prev) => prev.filter((e) => e.id !== id));
+    toast.info("Expense deleted.");
   };
 
   const handleUpdateExpense = (updated) => {
     setExpenses((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+    toast.success("Expense updated!");
   };
 
   // =========================
@@ -118,26 +142,21 @@ function App() {
     return (
       <>
         <HomePage onOpenLogin={() => setModal("login")} />
-
         {modal === "login" && (
           <LoginModal
             onClose={() => setModal(null)}
-            onLoginSuccess={async (data) => {
-              setUser(data.data ?? data);
-              setModal(null);
-              await refreshData();
-            }}
+            onLoginSuccess={handleLoginSuccess}
             onSwitchToRegister={() => setModal("register")}
           />
         )}
-
         {modal === "register" && (
           <RegisterModal
             onClose={() => setModal(null)}
-            onRegisterSuccess={() => setModal("login")}
+            onRegisterSuccess={handleRegisterSuccess}
             onSwitchToLogin={() => setModal("login")}
           />
         )}
+        <ToastContainer toasts={toasts} onDismiss={dismiss} />
       </>
     );
   }
@@ -153,12 +172,16 @@ function App() {
           user={user}
           defaultTab={page === "developer" ? "developer" : "profile"}
           onBack={() => setPage("dashboard")}
-          onProfileSaved={(updated) => setUser((prev) => ({ ...prev, ...updated, email: prev.email }))}
+          onProfileSaved={(updated) => {
+            setUser((prev) => ({ ...prev, ...updated, email: prev.email }));
+            toast.success("Profile saved!");
+          }}
           onAccountDeleted={() => {
             setUser(null);
             setPage("dashboard");
           }}
         />
+        <ToastContainer toasts={toasts} onDismiss={dismiss} />
       </>
     );
   }
@@ -170,7 +193,6 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       <Navbar user={user} onLogout={handleLogout} onNavigate={setPage} />
 
-      {/* Main Layout */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left Column */}
@@ -179,7 +201,10 @@ function App() {
               <ExpenseForm
                 onExpenseAdded={handleExpenseAdded}
                 categories={categories}
-                onCategoryAdded={(cat) => setCategories((prev) => [...prev, cat])}
+                onCategoryAdded={(cat) => {
+                  setCategories((prev) => [...prev, cat]);
+                  toast.success(`Category "${cat.name}" created!`);
+                }}
               />
             </div>
 
@@ -227,11 +252,12 @@ function App() {
         </div>
       </div>
 
-      {/* Charts Section */}
       <div className="max-w-6xl mx-auto px-6 pb-12">
         <h2 className="text-xl font-bold text-gray-700 mb-4">📊 Analytics</h2>
         <ExpenseCharts expenses={expenses} />
       </div>
+
+      <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 }

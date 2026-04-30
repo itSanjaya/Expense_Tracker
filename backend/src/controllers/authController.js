@@ -2,14 +2,36 @@ import authModel from "../models/authModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-// 1. REGISTER
+// 1. REGISTER — creates account + sets cookie (auto-login)
 const register = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await authModel.createUser(email, password);
-    return res.status(201).json({ data: user, error: null });
+
+    // Auto-login: issue JWT immediately
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(201).json({
+      data: {
+        id: user.id,
+        email: user.email,
+        display_name: null,
+        avatar_color: null,
+        created_at: user.created_at,
+      },
+      error: null,
+    });
   } catch (error) {
-    if (error.message === "Email already exists") {
+    if (error.code === "23505") {
       return res.status(400).json({ data: null, error: "Email already in use" });
     }
     return res.status(500).json({ data: null, error: error.message });
@@ -57,7 +79,7 @@ const logout = async (req, res) => {
   return res.status(200).json({ data: "Logged out successfully", error: null });
 };
 
-// 4. GET ME — returns full profile so display_name persists on refresh
+// 4. GET ME
 const getMe = async (req, res) => {
   const user = await authModel.findUserById(req.user.id);
   if (!user) {

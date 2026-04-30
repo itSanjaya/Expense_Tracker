@@ -14,6 +14,7 @@ function RegisterModal({ onClose, onRegisterSuccess, onSwitchToLogin }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [apiError, setApiError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const { errors, validate, clearFieldError } = useZodForm(registerSchema);
 
@@ -24,12 +25,16 @@ function RegisterModal({ onClose, onRegisterSuccess, onSwitchToLogin }) {
     const ok = validate({ email, password, confirmPassword });
     if (!ok) return;
 
+    setLoading(true);
     try {
       const res = await register({ email, password });
-      onRegisterSuccess(res.data);
+      // Pass user data up — App will set user + show welcome toast
+      onRegisterSuccess(res.data.data ?? res.data);
       onClose();
     } catch (err) {
       setApiError(err.response?.data?.error || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -49,7 +54,7 @@ function RegisterModal({ onClose, onRegisterSuccess, onSwitchToLogin }) {
           ✕
         </button>
 
-        <h2 className="text-xl font-bold mb-4 text-center">Register</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">Create Account</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -57,14 +62,9 @@ function RegisterModal({ onClose, onRegisterSuccess, onSwitchToLogin }) {
               type="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                clearFieldError("email");
-              }}
+              onChange={(e) => { setEmail(e.target.value); clearFieldError("email"); }}
               className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.email
-                  ? "border-red-400 focus:ring-red-300"
-                  : "border-gray-300 focus:ring-purple-400"
+                errors.email ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-purple-400"
               }`}
             />
             <FieldError message={errors.email} />
@@ -75,14 +75,9 @@ function RegisterModal({ onClose, onRegisterSuccess, onSwitchToLogin }) {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                clearFieldError("password");
-              }}
+              onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); }}
               className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.password
-                  ? "border-red-400 focus:ring-red-300"
-                  : "border-gray-300 focus:ring-purple-400"
+                errors.password ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-purple-400"
               }`}
             />
             <FieldError message={errors.password} />
@@ -93,14 +88,9 @@ function RegisterModal({ onClose, onRegisterSuccess, onSwitchToLogin }) {
               type="password"
               placeholder="Confirm Password"
               value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                clearFieldError("confirmPassword");
-              }}
+              onChange={(e) => { setConfirmPassword(e.target.value); clearFieldError("confirmPassword"); }}
               className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.confirmPassword
-                  ? "border-red-400 focus:ring-red-300"
-                  : "border-gray-300 focus:ring-purple-400"
+                errors.confirmPassword ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-purple-400"
               }`}
             />
             <FieldError message={errors.confirmPassword} />
@@ -108,9 +98,10 @@ function RegisterModal({ onClose, onRegisterSuccess, onSwitchToLogin }) {
 
           <button
             type="submit"
-            className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 cursor-pointer"
+            disabled={loading}
+            className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 cursor-pointer disabled:opacity-60 transition font-medium"
           >
-            Register
+            {loading ? "Creating account…" : "Create Account"}
           </button>
         </form>
 
