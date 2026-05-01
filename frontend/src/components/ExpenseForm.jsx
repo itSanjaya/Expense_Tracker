@@ -6,66 +6,40 @@ import { expenseSchema, categorySchema } from "../validation/schemas";
 
 function FieldError({ message }) {
   if (!message) return null;
-  return <p className="text-red-500 text-xs mt-1">{message}</p>;
+  return <p style={{ color: "#f87171", fontSize: 12, marginTop: 4, fontFamily: "'Inter', sans-serif" }}>{message}</p>;
 }
 
 function ExpenseForm({ onExpenseAdded, categories: propCategories, onCategoryAdded }) {
-  const [form, setForm] = useState({
-    amount: "",
-    description: "",
-    date: "",
-    category_id: "",
-  });
-
+  const [form, setForm] = useState({ amount: "", description: "", date: "", category_id: "" });
   const [localCategories, setLocalCategories] = useState(propCategories);
   const [newCategoryName, setNewCategoryName] = useState("");
 
   const { errors, validate, clearFieldError } = useZodForm(expenseSchema);
-  const {
-    errors: catErrors,
-    validate: validateCategory,
-    clearErrors: clearCatErrors,
-  } = useZodForm(categorySchema);
+  const { errors: catErrors, validate: validateCategory, clearErrors: clearCatErrors } = useZodForm(categorySchema);
 
-  useEffect(() => {
-    setLocalCategories(propCategories);
-  }, [propCategories]);
+  useEffect(() => { setLocalCategories(propCategories); }, [propCategories]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate expense form
     const ok = validate(form);
-
-    // If adding new category, also validate category name
     if (form.category_id === "add-new") {
       const catOk = validateCategory({ name: newCategoryName });
       if (!ok || !catOk) return;
     } else {
       if (!ok) return;
     }
-
     try {
       let categoryId = form.category_id;
-
       if (categoryId === "add-new") {
         const categoryRes = await addCategory({ name: newCategoryName });
         const newCategory = categoryRes.data;
-
         setLocalCategories((prev) => [...prev, newCategory]);
         onCategoryAdded(newCategory);
         categoryId = newCategory.id;
         clearCatErrors();
       }
-
-      const expenseRes = await addExpense({
-        ...form,
-        amount: Number(form.amount),
-        category_id: Number(categoryId),
-      });
-
+      const expenseRes = await addExpense({ ...form, amount: Number(form.amount), category_id: Number(categoryId) });
       onExpenseAdded(expenseRes.data);
-
       setForm({ amount: "", description: "", date: "", category_id: "" });
       setNewCategoryName("");
     } catch (error) {
@@ -73,112 +47,95 @@ function ExpenseForm({ onExpenseAdded, categories: propCategories, onCategoryAdd
     }
   };
 
-  const field = (name) => ({
-    onChange: (e) => {
-      setForm((prev) => ({ ...prev, [name]: e.target.value }));
-      clearFieldError(name);
-    },
-    className: `w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
-      errors[name]
-        ? "border-red-400 focus:ring-red-300"
-        : "border-gray-300 focus:ring-purple-400"
-    }`,
-  });
-
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Add Expense</h2>
+    <div style={{ fontFamily: "'Inter', sans-serif" }}>
+      <h2 className="font-syne" style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}>
+        Add Expense
+      </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Amount */}
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div>
           <input
             type="number"
-            placeholder="Amount"
+            placeholder="Amount (Rs)"
             value={form.amount}
-            {...field("amount")}
+            onChange={(e) => { setForm((p) => ({ ...p, amount: e.target.value })); clearFieldError("amount"); }}
+            className={`et-input${errors.amount ? " error" : ""}`}
           />
           <FieldError message={errors.amount} />
         </div>
 
-        {/* Description */}
         <div>
           <input
             type="text"
             placeholder="Description"
             value={form.description}
-            {...field("description")}
+            onChange={(e) => { setForm((p) => ({ ...p, description: e.target.value })); clearFieldError("description"); }}
+            className={`et-input${errors.description ? " error" : ""}`}
           />
           <FieldError message={errors.description} />
         </div>
 
-        {/* Date */}
         <div>
           <input
             type="date"
             value={form.date}
-            {...field("date")}
-            className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 cursor-pointer ${
-              errors.date
-                ? "border-red-400 focus:ring-red-300"
-                : "border-gray-300 focus:ring-purple-400"
-            }`}
+            onChange={(e) => { setForm((p) => ({ ...p, date: e.target.value })); clearFieldError("date"); }}
+            className={`et-input${errors.date ? " error" : ""}`}
           />
           <FieldError message={errors.date} />
         </div>
 
-        {/* Category */}
         <div>
           <select
             value={form.category_id}
-            onChange={(e) => {
-              setForm({ ...form, category_id: e.target.value });
-              clearFieldError("category_id");
-            }}
-            className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 cursor-pointer ${
-              errors.category_id
-                ? "border-red-400 focus:ring-red-300"
-                : "border-gray-300 focus:ring-purple-400"
-            }`}
+            onChange={(e) => { setForm((p) => ({ ...p, category_id: e.target.value })); clearFieldError("category_id"); }}
+            className={`et-input${errors.category_id ? " error" : ""}`}
+            style={{ cursor: "pointer" }}
           >
             <option value="">Select Category</option>
             {localCategories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
             <option value="add-new">+ Add New Category</option>
           </select>
           <FieldError message={errors.category_id} />
         </div>
 
-        {/* New Category Input */}
         {form.category_id === "add-new" && (
           <div>
             <input
               type="text"
               placeholder="New category name"
               value={newCategoryName}
-              onChange={(e) => {
-                setNewCategoryName(e.target.value);
-                clearCatErrors();
-              }}
-              className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
-                catErrors.name
-                  ? "border-red-400 focus:ring-red-300"
-                  : "border-yellow-300 bg-yellow-50 focus:ring-yellow-400"
-              }`}
+              onChange={(e) => { setNewCategoryName(e.target.value); clearCatErrors(); }}
+              className={`et-input${catErrors.name ? " error" : ""}`}
+              style={{ borderColor: catErrors.name ? undefined : "rgba(234,179,8,0.4)" }}
             />
             <FieldError message={catErrors.name} />
           </div>
         )}
 
-        {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 font-medium cursor-pointer"
+          style={{
+            marginTop: 4,
+            padding: "10px 0",
+            borderRadius: 10,
+            border: "none",
+            background: "linear-gradient(135deg, #059669, #10b981)",
+            color: "white",
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 14px rgba(5,150,105,0.3)",
+            transition: "opacity 0.15s, transform 0.15s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
         >
-          Add Expense
+          + Add Expense
         </button>
       </form>
     </div>

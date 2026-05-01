@@ -1,1 +1,410 @@
 @import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+/* ── Theme Variables ─────────────────────────────────────────────────────── */
+
+:root,
+[data-theme="dark"] {
+  --bg-base:            #0a0a0f;
+  --bg-surface:         rgba(255, 255, 255, 0.03);
+  --bg-surface-hover:   rgba(255, 255, 255, 0.06);
+  --bg-input:           rgba(255, 255, 255, 0.05);
+  --bg-overlay:         rgba(0, 0, 0, 0.70);
+  --bg-modal:           #0e0e16;
+  --bg-nav:             rgba(10, 10, 15, 0.85);
+  --bg-dropdown:        #12121c;
+  --bg-option:          #12121c;
+  --bg-badge:           rgba(124, 58, 237, 0.15);
+
+  --border-default:     rgba(255, 255, 255, 0.08);
+  --border-subtle:      rgba(255, 255, 255, 0.05);
+  --border-input:       rgba(255, 255, 255, 0.10);
+  --border-focus:       rgba(124, 58, 237, 0.60);
+
+  /* Contrast-checked text values (dark bg) */
+  --text-primary:       #f1f1f3;   /* ~16:1 on bg-base  */
+  --text-secondary:     #c4c4cc;   /* ~8:1  */
+  --text-muted:         #8b8b99;   /* ~4.6:1 — passes AA */
+  --text-placeholder:   rgba(255, 255, 255, 0.28);
+
+  --accent-purple:      #7C3AED;
+  --accent-purple-bg:   rgba(124, 58, 237, 0.15);
+  --accent-purple-border: rgba(124, 58, 237, 0.28);
+
+  --card-shadow:        none;
+  --grid-line:          rgba(124, 58, 237, 0.055);
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg-base:            #f0efff;
+  --bg-surface:         #ffffff;
+  --bg-surface-hover:   #faf9ff;
+  --bg-input:           #ffffff;
+  --bg-overlay:         rgba(0, 0, 0, 0.35);
+  --bg-modal:           #ffffff;
+  --bg-nav:             rgba(255, 255, 255, 0.92);
+  --bg-dropdown:        #ffffff;
+  --bg-option:          #ffffff;
+  --bg-badge:           rgba(124, 58, 237, 0.10);
+
+  --border-default:     rgba(0, 0, 0, 0.09);
+  --border-subtle:      rgba(0, 0, 0, 0.06);
+  --border-input:       rgba(0, 0, 0, 0.16);
+  --border-focus:       rgba(124, 58, 237, 0.55);
+
+  /* Contrast-checked text values (light bg) */
+  --text-primary:       #0d0d1a;   /* ~19:1 on white     */
+  --text-secondary:     #374151;   /* ~10:1  */
+  --text-muted:         #5c6470;   /* ~5.2:1 — passes AA */
+  --text-placeholder:   rgba(0, 0, 0, 0.32);
+
+  --accent-purple:      #6d28d9;   /* slightly darker for light bg contrast */
+  --accent-purple-bg:   rgba(109, 40, 217, 0.09);
+  --accent-purple-border: rgba(109, 40, 217, 0.22);
+
+  --card-shadow:        0 1px 4px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --grid-line:          rgba(109, 40, 217, 0.045);
+
+  color-scheme: light;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+
+html, body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ── Utility classes ─────────────────────────────────────────────────────── */
+
+.font-syne  { font-family: 'Syne',  sans-serif; }
+.font-inter { font-family: 'Inter', sans-serif; }
+
+/* Card surface — picks up shadow token in light mode */
+.card {
+  background:    var(--bg-surface);
+  border:        1px solid var(--border-default);
+  border-radius: 1rem;
+  padding:       1.25rem;
+  box-shadow:    var(--card-shadow);
+  transition:    background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* ── Form inputs ─────────────────────────────────────────────────────────── */
+
+.et-input {
+  background:  var(--bg-input);
+  border:      1px solid var(--border-input);
+  color:       var(--text-primary);
+  border-radius: 0.625rem;
+  padding:     0.625rem 0.875rem;
+  width:       100%;
+  font-family: 'Inter', sans-serif;
+  font-size:   0.875rem;
+  outline:     none;
+  transition:  border-color 0.2s, box-shadow 0.2s, background 0.25s;
+}
+
+.et-input::placeholder { color: var(--text-placeholder); }
+
+.et-input:focus {
+  border-color: var(--border-focus);
+  box-shadow:   0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.et-input.error { border-color: rgba(239, 68, 68, 0.6); }
+
+.et-input:disabled {
+  background: var(--bg-surface);
+  color:      var(--text-muted);
+  cursor:     not-allowed;
+}
+
+/* ── Select / Option dropdown fix ───────────────────────────────────────── */
+/*
+  Root cause: color-scheme:dark is inherited by the native <select> popup,
+  rendering options as white-on-white in dark mode.
+  Fix: unset color-scheme on the widget so the OS renders it neutrally,
+  then explicitly style option background + color via CSS variables.
+*/
+select.et-input,
+.et-input[type="month"] {
+  color-scheme: unset;
+  appearance:   auto;
+}
+
+select.et-input option {
+  background-color: var(--bg-option);
+  color:            var(--text-primary);
+  font-family:      'Inter', sans-serif;
+}
+
+/* ── Shimmer button ──────────────────────────────────────────────────────── */
+
+.shimmer-btn {
+  background: linear-gradient(
+    90deg,
+    #7C3AED 0%, #9333ea 30%, #a855f7 50%, #9333ea 70%, #7C3AED 100%
+  );
+  background-size: 200% auto;
+  animation:     shimmer 3s linear infinite;
+  color:         white;
+  font-family:   'Inter', sans-serif;
+  font-weight:   600;
+  border-radius: 0.75rem;
+  border:        none;
+  cursor:        pointer;
+  transition:    transform 0.15s ease;
+}
+.shimmer-btn:hover  { transform: scale(1.015); }
+.shimmer-btn:active { transform: scale(0.985); }
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* ── Grid background (theme-aware) ──────────────────────────────────────── */
+
+.grid-bg {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── HomePage — theme-aware overrides ───────────────────────────────────── */
+/*
+  HomePage uses Tailwind hardcoded classes (bg-[#0a0a0f], text-white, etc.)
+  These selectors override them when data-theme="light" is set on <html>.
+*/
+
+[data-theme="light"] .homepage-root {
+  background-color: var(--bg-base) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .homepage-hero-title {
+  background: linear-gradient(135deg, #0d0d1a 30%, #6d28d9 65%, #2563eb 90%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+[data-theme="light"] .homepage-nav {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  backdrop-filter: blur(20px);
+}
+
+[data-theme="light"] .homepage-nav span,
+[data-theme="light"] .homepage-nav button {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .homepage-feature-card {
+  background: var(--bg-surface) !important;
+  border-color: var(--border-default) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+[data-theme="light"] .homepage-feature-card h3 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .homepage-feature-card p {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .homepage-footer {
+  background: var(--bg-surface) !important;
+  border-top-color: var(--border-subtle) !important;
+}
+
+[data-theme="light"] .homepage-footer p,
+[data-theme="light"] .homepage-footer span {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="light"] .homepage-section-label {
+  color: var(--accent-purple) !important;
+}
+
+[data-theme="light"] .homepage-section-heading {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .homepage-section-sub {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .homepage-badge {
+  background: rgba(255,255,255,0.7) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .homepage-scroll-hint {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="light"] .homepage-body-text {
+  color: var(--text-secondary) !important;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border-default); border-radius: 3px; }
+
+/* ── Toast progress animation ────────────────────────────────────────────── */
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* ── Dashboard layout ────────────────────────────────────────────────────── */
+
+/*
+  Desktop  (≥900px): 1fr sidebar + 2fr content
+  Tablet   (600–900px): equal two columns
+  Mobile   (<600px): single column — content above, sidebar below
+*/
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.25rem;
+}
+
+.dashboard-col-left  { display: flex; flex-direction: column; gap: 1.25rem; }
+.dashboard-col-right { display: flex; flex-direction: column; gap: 1.25rem; }
+
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 600px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  /* Show expense list first on mobile, sidebar (Add Expense / Budget) below */
+  .dashboard-col-left  { order: 2; }
+  .dashboard-col-right { order: 1; }
+}
+
+/* ── Summary bar ─────────────────────────────────────────────────────────── */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .summary-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.summary-card-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Budget Manager form row ─────────────────────────────────────────────── */
+
+.budget-form-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.budget-form-row .budget-select { flex: 1; min-width: 0; }
+.budget-form-row .budget-limit  { width: 96px; flex-shrink: 0; }
+.budget-form-row .budget-save   { flex-shrink: 0; }
+
+@media (max-width: 400px) {
+  .budget-form-row { flex-wrap: wrap; }
+  .budget-form-row .budget-select { flex: 1 1 100%; }
+  .budget-form-row .budget-limit  { flex: 1 1 calc(50% - 4px); width: auto; }
+  .budget-form-row .budget-save   { flex: 1 1 calc(50% - 4px); }
+  .budget-form-row .budget-save button { width: 100%; }
+}
+
+/* ── Expense list responsive helpers ────────────────────────────────────── */
+
+/*
+  On screens wider than 480px the expense row stays in a single horizontal
+  line: [description + meta] ←→ [amount · edit · delete]
+
+  Below 480px the right cluster wraps underneath the description so nothing
+  gets squeezed or overflows.
+*/
+
+.expense-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.expense-row-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Export button — show full label on wide screens */
+.export-btn-label { display: inline; }
+
+@media (max-width: 480px) {
+  .expense-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Left side (description + meta) takes full width so it never truncates */
+  .expense-row-left {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  /* Right cluster sits on its own line, aligned to the right */
+  .expense-row-right {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+
+  /* Larger tap targets on mobile (44 × 44 minimum) */
+  .expense-action-btn {
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Shorten export button to icon only */
+  .export-btn-label { display: none; }
+}
+
+/* Edit form action buttons — always full-width on very small screens */
+@media (max-width: 380px) {
+  .edit-form-actions {
+    flex-direction: column;
+  }
+  .edit-form-actions button {
+    width: 100%;
+    padding: 12px 0 !important;
+    justify-content: center;
+  }
+}

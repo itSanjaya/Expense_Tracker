@@ -1,101 +1,77 @@
 // src/components/ToastContainer.jsx
 import { useEffect, useState } from "react";
 
-const ICONS = {
-  success: "✅",
-  error:   "❌",
-  warning: "⚠️",
-  info:    "ℹ️",
-};
-
-const STYLES = {
-  success: "bg-white border-l-4 border-green-500",
-  error:   "bg-white border-l-4 border-red-500",
-  warning: "bg-white border-l-4 border-amber-400",
-  info:    "bg-white border-l-4 border-blue-500",
-};
-
-const PROGRESS_COLORS = {
-  success: "bg-green-500",
-  error:   "bg-red-500",
-  warning: "bg-amber-400",
-  info:    "bg-blue-500",
+const CONFIG = {
+  success: { icon: "✅", bar: "#10b981", bg: "rgba(5,150,105,0.12)",  border: "rgba(16,185,129,0.28)" },
+  error:   { icon: "❌", bar: "#ef4444", bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.28)"  },
+  warning: { icon: "⚠️", bar: "#f59e0b", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.28)" },
+  info:    { icon: "ℹ️", bar: "#3b82f6", bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.28)" },
 };
 
 function Toast({ id, message, type = "info", duration = 4000, onDismiss }) {
   const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const cfg = CONFIG[type] || CONFIG.info;
 
-  // Slide in
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 10);
-    return () => clearTimeout(t);
-  }, []);
+  useEffect(() => { const t = setTimeout(() => setVisible(true), 10); return () => clearTimeout(t); }, []);
 
-  const handleDismiss = () => {
-    setLeaving(true);
-    setTimeout(() => onDismiss(id), 300);
-  };
-
-  // Auto-dismiss
-  useEffect(() => {
-    const t = setTimeout(handleDismiss, duration);
-    return () => clearTimeout(t);
-  }, []);
+  const dismiss = () => { setLeaving(true); setTimeout(() => onDismiss(id), 280); };
+  useEffect(() => { const t = setTimeout(dismiss, duration); return () => clearTimeout(t); }, []);
 
   return (
     <div
-      className={`
-        relative flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg min-w-[280px] max-w-[360px]
-        transition-all duration-300 ease-out overflow-hidden cursor-pointer
-        ${STYLES[type]}
-        ${visible && !leaving
-          ? "opacity-100 translate-x-0"
-          : "opacity-0 translate-x-8"
-        }
-      `}
-      onClick={handleDismiss}
+      onClick={dismiss}
+      style={{
+        position: "relative", overflow: "hidden",
+        display: "flex", alignItems: "flex-start", gap: 10,
+        padding: "12px 36px 12px 14px",
+        minWidth: 280, maxWidth: 360,
+        borderRadius: 14,
+        background: "var(--bg-modal)",
+        border: `1px solid ${cfg.border}`,
+        borderLeft: `3px solid ${cfg.bar}`,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+        cursor: "pointer",
+        fontFamily: "'Inter', sans-serif",
+        transition: "opacity 0.28s ease, transform 0.28s ease",
+        opacity: visible && !leaving ? 1 : 0,
+        transform: visible && !leaving ? "translateX(0)" : "translateX(16px)",
+      }}
     >
-      <span className="text-lg leading-none mt-0.5 flex-shrink-0">{ICONS[type]}</span>
-
-      <p className="text-sm text-gray-800 font-medium leading-snug flex-1 pr-4">
+      <span style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>{cfg.icon}</span>
+      <p style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500, lineHeight: 1.45, flex: 1 }}>
         {message}
       </p>
-
       <button
-        onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
-        className="absolute top-2.5 right-2.5 text-gray-400 hover:text-gray-600 text-xs leading-none cursor-pointer"
-      >
-        ✕
-      </button>
+        onClick={(e) => { e.stopPropagation(); dismiss(); }}
+        style={{
+          position: "absolute", top: 10, right: 10,
+          background: "none", border: "none", cursor: "pointer",
+          color: "var(--text-muted)", fontSize: 12, lineHeight: 1,
+          transition: "color 0.15s",
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"}
+        onMouseLeave={e => e.currentTarget.style.color = "var(--text-muted)"}
+      >✕</button>
 
       {/* Progress bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-100">
-        <div
-          className={`h-full ${PROGRESS_COLORS[type]}`}
-          style={{
-            animation: `toast-progress ${duration}ms linear forwards`,
-          }}
-        />
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: "var(--border-subtle)" }}>
+        <div style={{ height: "100%", background: cfg.bar, animation: `toast-progress ${duration}ms linear forwards` }} />
       </div>
-
-      <style>{`
-        @keyframes toast-progress {
-          from { width: 100%; }
-          to   { width: 0%; }
-        }
-      `}</style>
     </div>
   );
 }
 
 function ToastContainer({ toasts, onDismiss }) {
   if (!toasts.length) return null;
-
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 items-end pointer-events-none">
+    <div style={{
+      position: "fixed", top: 16, right: 16, zIndex: 9999,
+      display: "flex", flexDirection: "column", gap: 8,
+      alignItems: "flex-end", pointerEvents: "none",
+    }}>
       {toasts.map((t) => (
-        <div key={t.id} className="pointer-events-auto">
+        <div key={t.id} style={{ pointerEvents: "auto" }}>
           <Toast {...t} onDismiss={onDismiss} />
         </div>
       ))}

@@ -1,57 +1,56 @@
 function BudgetProgress({ budgets, expenses, categories, selectedMonth }) {
+  const monthlyExpenses = expenses.filter((e) => e.date.slice(0, 7) === selectedMonth);
 
-  // Only count expenses that belong to the selected month
-  const monthlyExpenses = expenses.filter((e) => {
-    return e.date.slice(0, 7) === selectedMonth; // "2026-04-10".slice(0,7) === "2026-04"
-  });
-
-  // calculate spent per category
   const spentMap = {};
-
   monthlyExpenses.forEach((e) => {
-    const catId = e.category_id;
-    spentMap[catId] = (spentMap[catId] || 0) + Number(e.amount);
+    spentMap[e.category_id] = (spentMap[e.category_id] || 0) + Number(e.amount);
   });
 
-  const getCategoryName = (id) => {
-    return categories.find((c) => c.id === id)?.name || "Unknown";
+  const getCategoryName = (id) => categories.find((c) => c.id === id)?.name || "Unknown";
+
+  const getBarColor = (percent) => {
+    if (percent < 75)  return { bar: "#10b981", glow: "rgba(16,185,129,0.3)",  label: "#10b981" };
+    if (percent < 100) return { bar: "#f59e0b", glow: "rgba(245,158,11,0.3)",  label: "#f59e0b" };
+    return               { bar: "#ef4444", glow: "rgba(239,68,68,0.3)",   label: "#ef4444" };
   };
 
-  const getColor = (percent) => {
-    if (percent < 75) return "bg-green-500";
-    if (percent < 100) return "bg-yellow-500";
-    return "bg-red-500";
-  };
+  if (budgets.length === 0) return null;
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow mt-4">
-      <h2 className="text-lg font-bold mb-4">Budget Overview</h2>
+    <div className="card" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <h2 className="font-syne" style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: 18 }}>
+        Budget Overview
+      </h2>
 
-      <div className="space-y-4">
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         {budgets.map((b) => {
-          const spent = spentMap[b.category_id] || 0;
-          const limit = Number(b.limit_amount);
+          const spent   = spentMap[b.category_id] || 0;
+          const limit   = Number(b.limit_amount);
           const percent = limit ? (spent / limit) * 100 : 0;
+          const colors  = getBarColor(percent);
 
           return (
             <div key={b.id}>
-              <div className="flex justify-between mb-1">
-                <span className="font-medium">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)" }}>
                   {getCategoryName(b.category_id)}
                 </span>
-                <span className="text-sm text-gray-600">
-                  {spent} / {limit}
+                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  Rs {spent} <span style={{ opacity: 0.5 }}>/</span> Rs {limit}
                 </span>
               </div>
 
-              <div className="w-full bg-gray-200 h-2 rounded">
-                <div
-                  className={`${getColor(percent)} h-2 rounded`}
-                  style={{ width: `${Math.min(percent, 100)}%` }}
-                ></div>
+              <div style={{ width: "100%", height: 6, borderRadius: 999, background: "var(--border-default)", overflow: "hidden" }}>
+                <div style={{
+                  height: "100%", borderRadius: 999,
+                  width: `${Math.min(percent, 100)}%`,
+                  background: colors.bar,
+                  boxShadow: `0 0 8px ${colors.glow}`,
+                  transition: "width 0.5s ease",
+                }} />
               </div>
 
-              <p className="text-xs text-gray-500 mt-1">
+              <p style={{ fontSize: 11, marginTop: 4, color: colors.label }}>
                 {percent.toFixed(0)}% used
               </p>
             </div>

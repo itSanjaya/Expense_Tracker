@@ -6,39 +6,29 @@ import { budgetSchema } from "../validation/schemas";
 
 function FieldError({ message }) {
   if (!message) return null;
-  return <p className="text-red-500 text-xs mt-1">{message}</p>;
+  return <p style={{ color: "#f87171", fontSize: 12, marginTop: 4, fontFamily: "'Inter', sans-serif" }}>{message}</p>;
 }
 
 function BudgetManager({ categories, budgets, setBudgets, selectedMonth, onMonthChange }) {
-  const [form, setForm] = useState({
-    categoryId: "",
-    limitAmount: "",
-  });
-
+  const [form, setForm] = useState({ categoryId: "", limitAmount: "" });
   const { errors, validate, clearFieldError } = useZodForm(budgetSchema);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const ok = validate(form);
-    if (!ok) return;
-
+    if (!validate(form)) return;
     try {
       const res = await setBudget({
         categoryId: Number(form.categoryId),
         limitAmount: Number(form.limitAmount),
-        month: `${selectedMonth}-01`, // "2026-04" → "2026-04-01"
+        month: `${selectedMonth}-01`,
       });
-
       const updated = res.data.data;
-
       setBudgets((prev) => {
         const filtered = prev.filter(
           (b) => !(b.category_id === updated.category_id && b.month === updated.month)
         );
         return [...filtered, updated];
       });
-
       setForm({ categoryId: "", limitAmount: "" });
     } catch (err) {
       console.error("Failed to set budget:", err);
@@ -46,81 +36,83 @@ function BudgetManager({ categories, budgets, setBudgets, selectedMonth, onMonth
   };
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold">Budget Manager</h2>
-
-        {/* Month Picker */}
+    <div className="card" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <h2 className="font-syne" style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-primary)" }}>
+          Budget Manager
+        </h2>
         <input
           type="month"
           value={selectedMonth}
           onChange={(e) => onMonthChange(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+          className="et-input"
+          style={{ width: "auto", fontSize: 12, padding: "5px 10px", cursor: "pointer" }}
         />
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="mb-4">
-        <div className="flex gap-2 items-start">
-          <div className="flex-1">
+      <form onSubmit={handleSubmit} style={{ marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <div style={{ flex: 1 }}>
             <select
-              className={`w-full border p-2 rounded ${
-                errors.categoryId ? "border-red-400" : "border-gray-300"
-              }`}
               value={form.categoryId}
-              onChange={(e) => {
-                setForm({ ...form, categoryId: e.target.value });
-                clearFieldError("categoryId");
-              }}
+              onChange={(e) => { setForm({ ...form, categoryId: e.target.value }); clearFieldError("categoryId"); }}
+              className={`et-input${errors.categoryId ? " error" : ""}`}
             >
-              <option value="">Select Category</option>
+              <option value="">Category</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
+                <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
             <FieldError message={errors.categoryId} />
           </div>
 
-          <div>
+          <div style={{ width: 96 }}>
             <input
               type="number"
               placeholder="Limit"
-              className={`border p-2 rounded w-28 ${
-                errors.limitAmount ? "border-red-400" : "border-gray-300"
-              }`}
               value={form.limitAmount}
-              onChange={(e) => {
-                setForm({ ...form, limitAmount: e.target.value });
-                clearFieldError("limitAmount");
-              }}
+              onChange={(e) => { setForm({ ...form, limitAmount: e.target.value }); clearFieldError("limitAmount"); }}
+              className={`et-input${errors.limitAmount ? " error" : ""}`}
             />
             <FieldError message={errors.limitAmount} />
           </div>
 
           <button
-            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition cursor-pointer"
             type="submit"
+            style={{
+              padding: "9px 16px", borderRadius: 10, border: "none", flexShrink: 0,
+              background: "linear-gradient(135deg, #7C3AED, #9333ea)",
+              color: "white", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
+              cursor: "pointer", boxShadow: "0 4px 12px rgba(124,58,237,0.25)",
+              transition: "opacity 0.15s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
             Save
           </button>
         </div>
       </form>
 
-      {/* Budget List */}
-      <div className="space-y-2">
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {budgets.length === 0 && (
-          <p className="text-gray-400 text-sm text-center py-2">
+          <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", padding: "12px 0" }}>
             No budgets set for {selectedMonth}
           </p>
         )}
         {budgets.map((b) => (
-          <div key={b.id} className="flex justify-between p-2 border rounded">
-            <span>
+          <div key={b.id} style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "10px 12px", borderRadius: 10,
+            background: "var(--bg-surface-hover)",
+            border: "1px solid var(--border-subtle)",
+          }}>
+            <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
               {categories.find((c) => c.id === b.category_id)?.name || "Unknown"}
             </span>
-            <span className="font-bold">Rs {b.limit_amount}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--accent-purple)" }}>
+              Rs {b.limit_amount}
+            </span>
           </div>
         ))}
       </div>

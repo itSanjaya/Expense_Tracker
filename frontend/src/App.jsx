@@ -13,6 +13,7 @@ import ExpenseCharts from "./components/ExpenseCharts";
 import Navbar from "./components/Navbar";
 import SettingsPage from "./components/SettingsPage";
 import ToastContainer from "./components/ToastContainer";
+import Footer from "./components/Footer";
 
 import HomePage from "./components/HomePage";
 import LoginModal from "./components/modals/LoginModal";
@@ -39,9 +40,6 @@ function App() {
 
   const { toasts, toast, dismiss } = useToast();
 
-  // =========================
-  // MASTER REFRESH FUNCTION
-  // =========================
   const refreshData = async () => {
     const [expenseRes, categoryRes, budgetRes] = await Promise.all([
       getExpenses(),
@@ -53,9 +51,6 @@ function App() {
     setBudgets(budgetRes.data.data || []);
   };
 
-  // =========================
-  // AUTH CHECK ON LOAD
-  // =========================
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -69,9 +64,6 @@ function App() {
     checkAuth();
   }, []);
 
-  // =========================
-  // AUTH HANDLERS
-  // =========================
   const handleLoginSuccess = async (userData) => {
     const u = userData.data ?? userData;
     setUser(u);
@@ -89,81 +81,43 @@ function App() {
   };
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setUser(null);
-      setExpenses([]);
-      setCategories([]);
-      setBudgets([]);
+    try { await logout(); } catch (err) { console.error(err); }
+    finally {
+      setUser(null); setExpenses([]); setCategories([]); setBudgets([]);
       setPage("dashboard");
     }
   };
 
-  // =========================
-  // EXPENSE HANDLERS
-  // =========================
-  const handleExpenseAdded = async () => {
-    await refreshData();
-    toast.success("Expense added!");
-  };
+  const handleExpenseAdded = async () => { await refreshData(); toast.success("Expense added!"); };
+  const handleDeleteExpense = (id) => { setExpenses((p) => p.filter((e) => e.id !== id)); toast.info("Expense deleted."); };
+  const handleUpdateExpense = (updated) => { setExpenses((p) => p.map((e) => e.id === updated.id ? updated : e)); toast.success("Expense updated!"); };
 
-  const handleDeleteExpense = (id) => {
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
-    toast.info("Expense deleted.");
-  };
-
-  const handleUpdateExpense = (updated) => {
-    setExpenses((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
-    toast.success("Expense updated!");
-  };
-
-  // =========================
-  // FILTER LOGIC
-  // =========================
   const filteredExpenses = expenses.filter((exp) => {
-    if (filters.category_id && exp.category_id !== Number(filters.category_id))
-      return false;
+    if (filters.category_id && exp.category_id !== Number(filters.category_id)) return false;
     if (filters.startDate && exp.date < filters.startDate) return false;
     if (filters.endDate && exp.date > filters.endDate) return false;
     return true;
   });
 
-  const clearFilters = () => {
-    setFilters({ category_id: "", startDate: "", endDate: "" });
-  };
+  const clearFilters = () => setFilters({ category_id: "", startDate: "", endDate: "" });
 
-  // =========================
-  // AUTH VIEW
-  // =========================
+  // ── Unauthenticated ────────────────────────────────────────────────────────
   if (!user) {
     return (
       <>
         <HomePage onOpenLogin={() => setModal("login")} />
         {modal === "login" && (
-          <LoginModal
-            onClose={() => setModal(null)}
-            onLoginSuccess={handleLoginSuccess}
-            onSwitchToRegister={() => setModal("register")}
-          />
+          <LoginModal onClose={() => setModal(null)} onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => setModal("register")} />
         )}
         {modal === "register" && (
-          <RegisterModal
-            onClose={() => setModal(null)}
-            onRegisterSuccess={handleRegisterSuccess}
-            onSwitchToLogin={() => setModal("login")}
-          />
+          <RegisterModal onClose={() => setModal(null)} onRegisterSuccess={handleRegisterSuccess} onSwitchToLogin={() => setModal("login")} />
         )}
         <ToastContainer toasts={toasts} onDismiss={dismiss} />
       </>
     );
   }
 
-  // =========================
-  // SETTINGS PAGE
-  // =========================
+  // ── Settings ───────────────────────────────────────────────────────────────
   if (page === "settings" || page === "developer") {
     return (
       <>
@@ -176,88 +130,81 @@ function App() {
             setUser((prev) => ({ ...prev, ...updated, email: prev.email }));
             toast.success("Profile saved!");
           }}
-          onAccountDeleted={() => {
-            setUser(null);
-            setPage("dashboard");
-          }}
+          onAccountDeleted={() => { setUser(null); setPage("dashboard"); }}
         />
         <ToastContainer toasts={toasts} onDismiss={dismiss} />
       </>
     );
   }
 
-  // =========================
-  // DASHBOARD
-  // =========================
+  // ── Dashboard ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-base)", color: "var(--text-primary)" }}>
+      {/* Background decoration */}
+      <div className="fixed inset-0 grid-bg pointer-events-none" style={{ opacity: 0.6 }} />
+      <div
+        className="fixed pointer-events-none"
+        style={{ top: 0, left: "25%", width: 500, height: 500, borderRadius: "50%", background: "rgba(124,58,237,0.06)", filter: "blur(120px)" }}
+      />
+
       <Navbar user={user} onLogout={handleLogout} onNavigate={setPage} />
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left Column */}
-          <div className="md:col-span-1 space-y-6">
-            <div className="bg-white p-4 rounded-xl shadow-sm">
+      <div className="relative" style={{ maxWidth: 1280, margin: "0 auto", padding: "2rem 1.5rem" }}>
+        <div style={{ marginBottom: "2rem" }}>
+          <h1 className="font-syne" style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>
+            Dashboard
+          </h1>
+          <p className="font-inter" style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
+            Track, manage, and understand your spending.
+          </p>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.25rem" }}>
+          {/* Left column */}
+          <div style={{ gridColumn: "span 1", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <div className="card">
               <ExpenseForm
                 onExpenseAdded={handleExpenseAdded}
                 categories={categories}
-                onCategoryAdded={(cat) => {
-                  setCategories((prev) => [...prev, cat]);
-                  toast.success(`Category "${cat.name}" created!`);
-                }}
+                onCategoryAdded={(cat) => { setCategories((p) => [...p, cat]); toast.success(`Category "${cat.name}" created!`); }}
               />
             </div>
-
             <BudgetManager
-              categories={categories}
-              budgets={budgets}
-              setBudgets={setBudgets}
+              categories={categories} budgets={budgets} setBudgets={setBudgets}
               selectedMonth={selectedMonth}
-              onMonthChange={async (newMonth) => {
-                setSelectedMonth(newMonth);
-                const res = await getBudgets(`${newMonth}-01`);
-                setBudgets(res.data.data || []);
-              }}
+              onMonthChange={async (m) => { setSelectedMonth(m); const r = await getBudgets(`${m}-01`); setBudgets(r.data.data || []); }}
             />
-
-            <BudgetProgress
-              budgets={budgets}
-              expenses={expenses}
-              categories={categories}
-              selectedMonth={selectedMonth}
-            />
+            <BudgetProgress budgets={budgets} expenses={expenses} categories={categories} selectedMonth={selectedMonth} />
           </div>
 
-          {/* Right Column */}
-          <div className="md:col-span-2 space-y-6">
-            <div className="bg-white p-4 rounded-xl shadow-sm">
-              <ExpenseFilter
-                filters={filters}
-                categories={categories}
-                onFilterChange={setFilters}
-                onClearFilters={clearFilters}
-              />
+          {/* Right column */}
+          <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <div className="card">
+              <ExpenseFilter filters={filters} categories={categories} onFilterChange={setFilters} onClearFilters={clearFilters} />
             </div>
-
             <SummaryBar expenses={filteredExpenses} />
-
-            <div className="bg-white p-4 rounded-xl shadow-sm">
-              <ExpenseList
-                expenses={filteredExpenses}
-                onDeleteExpense={handleDeleteExpense}
-                onUpdateExpense={handleUpdateExpense}
-              />
+            <div className="card">
+              <ExpenseList expenses={filteredExpenses} onDeleteExpense={handleDeleteExpense} onUpdateExpense={handleUpdateExpense} />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 pb-12">
-        <h2 className="text-xl font-bold text-gray-700 mb-4">📊 Analytics</h2>
+      {/* Analytics */}
+      <div className="relative" style={{ maxWidth: 1280, margin: "0 auto", padding: "0 1.5rem 4rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem" }}>
+          <h2 className="font-syne" style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-primary)" }}>Analytics</h2>
+          <span className="font-inter" style={{
+            fontSize: "0.75rem", color: "#a78bfa",
+            background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.2)",
+            padding: "2px 10px", borderRadius: 999,
+          }}>All time</span>
+        </div>
         <ExpenseCharts expenses={expenses} />
       </div>
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
+      <Footer />
     </div>
   );
 }

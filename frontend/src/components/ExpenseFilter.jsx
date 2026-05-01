@@ -1,64 +1,51 @@
-function ExpenseFilter({
-  filters,
-  categories,
-  onFilterChange,
-  onClearFilters,
-}) {
+function ExpenseFilter({ filters, categories, onFilterChange, onClearFilters }) {
   return (
-    <div>
-      <h2 className="text-lg font-bold mb-4">Filter Expenses</h2>
+    <div style={{ fontFamily: "'Inter', sans-serif" }}>
+      <h2 className="font-syne" style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>
+        Filter
+      </h2>
 
-      <div className="flex flex-wrap gap-4 items-end">
-        {/* Category */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
         <select
           value={filters.category_id}
-          onChange={(e) =>
-            onFilterChange({
-              ...filters,
-              category_id: e.target.value,
-            })
-          }
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
+          onChange={(e) => onFilterChange({ ...filters, category_id: e.target.value })}
+          className="et-input"
+          style={{ width: "auto", cursor: "pointer" }}
         >
           <option value="">All Categories</option>
-
           {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
         </select>
 
-        {/* Start Date */}
         <input
           type="date"
           value={filters.startDate}
-          onChange={(e) =>
-            onFilterChange({
-              ...filters,
-              startDate: e.target.value,
-            })
-          }
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
+          onChange={(e) => onFilterChange({ ...filters, startDate: e.target.value })}
+          className="et-input"
+          style={{ width: "auto", cursor: "pointer" }}
         />
 
-        {/* End Date */}
         <input
           type="date"
           value={filters.endDate}
-          onChange={(e) =>
-            onFilterChange({
-              ...filters,
-              endDate: e.target.value,
-            })
-          }
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
+          onChange={(e) => onFilterChange({ ...filters, endDate: e.target.value })}
+          className="et-input"
+          style={{ width: "auto", cursor: "pointer" }}
         />
 
-        {/* Clear Button */}
         <button
           onClick={onClearFilters}
-          className="border border-red-500 text-red-500 px-4 py-2 rounded-lg hover:bg-red-50 cursor-pointer"
+          style={{
+            padding: "8px 16px", borderRadius: 10, cursor: "pointer",
+            background: "rgba(239,68,68,0.08)",
+            border: "1px solid rgba(239,68,68,0.22)",
+            color: "#f87171", fontSize: 13, fontWeight: 500,
+            fontFamily: "'Inter', sans-serif",
+            transition: "opacity 0.15s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.75"}
+          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
         >
           Clear
         </button>

@@ -1,15 +1,17 @@
 // src/components/HomePage.jsx
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "../context/ThemeContext";
 
-// Animated floating expense card mock
 function FloatingCard({ style, emoji, label, amount, color, delay }) {
   return (
     <div
-      className="absolute bg-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 select-none"
+      className="absolute rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 select-none"
       style={{
         ...style,
         animation: `float 6s ease-in-out ${delay} infinite`,
-        border: "1px solid rgba(255,255,255,0.15)",
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border-default)",
+        boxShadow: "var(--card-shadow)",
         minWidth: 180,
       }}
     >
@@ -20,12 +22,12 @@ function FloatingCard({ style, emoji, label, amount, color, delay }) {
         {emoji}
       </div>
       <div>
-        <p className="text-xs text-gray-400 leading-none mb-0.5">{label}</p>
-        <p className="text-sm font-bold text-gray-800">{amount}</p>
+        <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>{label}</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{amount}</p>
       </div>
       <div
         className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full"
-        style={{ backgroundColor: color + "15", color }}
+        style={{ backgroundColor: color + "18", color }}
       >
         Logged
       </div>
@@ -33,96 +35,38 @@ function FloatingCard({ style, emoji, label, amount, color, delay }) {
   );
 }
 
-// Animated counter
-function Counter({ target, prefix = "", suffix = "" }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const started = useRef(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started.current) {
-          started.current = true;
-          let start = 0;
-          const duration = 1800;
-          const step = (target / duration) * 16;
-          const timer = setInterval(() => {
-            start += step;
-            if (start >= target) {
-              setCount(target);
-              clearInterval(timer);
-            } else {
-              setCount(Math.floor(start));
-            }
-          }, 16);
-        }
-      },
-      { threshold: 0.3 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target]);
-
-  return (
-    <span ref={ref}>
-      {prefix}{count.toLocaleString()}{suffix}
-    </span>
-  );
-}
-
 const FEATURES = [
-  {
-    icon: "📊",
-    title: "Smart Analytics",
-    desc: "Visual charts show exactly where your money goes — by category, by month, at a glance.",
-    color: "#7C3AED",
-  },
-  {
-    icon: "🎯",
-    title: "Budget Goals",
-    desc: "Set monthly limits per category. Get color-coded alerts before you overspend.",
-    color: "#2563EB",
-  },
-  {
-    icon: "⚡",
-    title: "Instant Logging",
-    desc: "Add an expense in seconds. Custom categories, date picker, inline editing.",
-    color: "#059669",
-  },
-  {
-    icon: "🔒",
-    title: "Private & Secure",
-    desc: "Your data is yours. JWT auth, encrypted passwords, zero third-party tracking.",
-    color: "#D97706",
-  },
-  {
-    icon: "📤",
-    title: "CSV Export",
-    desc: "Download your expenses any time. Works with Excel, Sheets, anywhere.",
-    color: "#DC2626",
-  },
-  {
-    icon: "🔍",
-    title: "Filter & Search",
-    desc: "Find any expense instantly by category, date range, or description.",
-    color: "#DB2777",
-  },
+  { icon: "📊", title: "Smart Analytics",  desc: "Visual charts show exactly where your money goes — by category, by month, at a glance.", color: "#7C3AED" },
+  { icon: "🎯", title: "Budget Goals",     desc: "Set monthly limits per category. Get color-coded alerts before you overspend.",          color: "#2563EB" },
+  { icon: "⚡", title: "Instant Logging",  desc: "Add an expense in seconds. Custom categories, date picker, inline editing.",              color: "#059669" },
+  { icon: "🔒", title: "Private & Secure", desc: "Your data is yours. JWT auth, encrypted passwords, zero third-party tracking.",           color: "#D97706" },
+  { icon: "📤", title: "CSV Export",       desc: "Download your expenses any time. Works with Excel, Sheets, anywhere.",                    color: "#DC2626" },
+  { icon: "🔍", title: "Filter & Search",  desc: "Find any expense instantly by category, date range, or description.",                     color: "#DB2777" },
 ];
 
 const CARDS = [
-  { emoji: "☕", label: "Morning Coffee", amount: "Rs 280", color: "#D97706", style: { top: "12%", right: "6%" }, delay: "0s" },
-  { emoji: "🛒", label: "Groceries", amount: "Rs 2,400", color: "#059669", style: { top: "38%", right: "2%" }, delay: "1.5s" },
-  { emoji: "🚌", label: "Transport", amount: "Rs 150", color: "#2563EB", style: { top: "62%", right: "8%" }, delay: "3s" },
-  { emoji: "🍕", label: "Dinner out", amount: "Rs 890", color: "#DC2626", style: { top: "24%", left: "2%" }, delay: "2s" },
+  { emoji: "☕", label: "Morning Coffee", amount: "Rs 280",   color: "#D97706", style: { top: "12%", right: "6%" }, delay: "0s"   },
+  { emoji: "🛒", label: "Groceries",      amount: "Rs 2,400", color: "#059669", style: { top: "38%", right: "2%" }, delay: "1.5s" },
+  { emoji: "🚌", label: "Transport",      amount: "Rs 150",   color: "#2563EB", style: { top: "62%", right: "8%" }, delay: "3s"   },
+  { emoji: "🍕", label: "Dinner out",     amount: "Rs 890",   color: "#DC2626", style: { top: "24%", left:  "2%" }, delay: "2s"   },
 ];
 
 function HomePage({ onOpenLogin }) {
-  return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap');
+  const { theme, toggle } = useTheme();
+  const isDark = theme === "dark";
 
+  return (
+    <div
+      className="homepage-root"
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "var(--bg-base)",
+        color: "var(--text-primary)",
+        overflowX: "hidden",
+        transition: "background-color 0.25s ease, color 0.25s ease",
+      }}
+    >
+      <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
           33%       { transform: translateY(-10px) rotate(0.5deg); }
@@ -137,222 +81,286 @@ function HomePage({ onOpenLogin }) {
           70%  { transform: scale(1);    box-shadow: 0 0 0 18px rgba(124,58,237,0); }
           100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(124,58,237,0); }
         }
-        @keyframes shimmer {
-          0%   { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
         @keyframes grid-move {
           0%   { transform: translateY(0); }
           100% { transform: translateY(60px); }
         }
-
-        .font-syne { font-family: 'Syne', sans-serif; }
-        .font-inter { font-family: 'Inter', sans-serif; }
-
-        .hero-title {
-          font-family: 'Syne', sans-serif;
-          font-weight: 800;
-          background: linear-gradient(135deg, #fff 30%, #a78bfa 60%, #60a5fa 90%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .shimmer-btn {
-          background: linear-gradient(
-            90deg,
-            #7C3AED 0%,
-            #9333ea 30%,
-            #a855f7 50%,
-            #9333ea 70%,
-            #7C3AED 100%
-          );
-          background-size: 200% auto;
-          animation: shimmer 3s linear infinite;
-        }
-
-        .fade-up { animation: fadeUp 0.7s ease both; }
-        .fade-up-1 { animation: fadeUp 0.7s 0.1s ease both; }
-        .fade-up-2 { animation: fadeUp 0.7s 0.2s ease both; }
+        .fade-up   { animation: fadeUp 0.7s ease both; }
+        .fade-up-1 { animation: fadeUp 0.7s 0.10s ease both; }
+        .fade-up-2 { animation: fadeUp 0.7s 0.20s ease both; }
         .fade-up-3 { animation: fadeUp 0.7s 0.35s ease both; }
-        .fade-up-4 { animation: fadeUp 0.7s 0.5s ease both; }
-
-        .grid-bg {
+        .fade-up-4 { animation: fadeUp 0.7s 0.50s ease both; }
+        .homepage-grid-bg {
           background-image:
-            linear-gradient(rgba(124,58,237,0.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(124,58,237,0.07) 1px, transparent 1px);
+            linear-gradient(var(--grid-line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
           background-size: 60px 60px;
           animation: grid-move 8s linear infinite;
         }
-
         .feature-card:hover .feature-icon {
           transform: scale(1.15) rotate(-4deg);
-          transition: transform 0.25s ease;
         }
         .feature-icon { transition: transform 0.25s ease; }
-
-        .glow-purple {
-          box-shadow: 0 0 60px rgba(124,58,237,0.25), 0 0 120px rgba(124,58,237,0.1);
-        }
       `}</style>
 
-      {/* ── Navbar ── */}
-      <nav className="flex justify-between items-center px-8 py-5 relative z-20">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center text-sm font-bold">Rs</div>
-          <span className="font-syne font-700 text-lg tracking-tight">ExpenseTracker</span>
+      {/* ── Navbar ─────────────────────────────────────────────────────────── */}
+      <nav
+        className="homepage-nav"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "18px 32px",
+          position: "relative",
+          zIndex: 20,
+          transition: "background 0.25s ease",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 8,
+            background: "#7C3AED",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 13, fontWeight: 700, color: "white",
+          }}>Rs</div>
+          <span className="font-syne" style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
+            ExpenseTracker
+          </span>
         </div>
-        <button
-          onClick={onOpenLogin}
-          className="text-sm font-medium border border-white/20 px-5 py-2 rounded-full hover:bg-white/10 transition cursor-pointer backdrop-blur-sm"
-        >
-          Sign In
-        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Theme toggle */}
+          <button
+            onClick={toggle}
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "6px 14px", borderRadius: 999,
+              border: "1px solid var(--border-default)",
+              background: "var(--bg-surface)",
+              color: "var(--text-secondary)",
+              cursor: "pointer", fontSize: 13,
+              fontFamily: "'Inter', sans-serif", fontWeight: 500,
+              transition: "all 0.2s ease",
+            }}
+          >
+            <span style={{ fontSize: 15 }}>{isDark ? "☀️" : "🌙"}</span>
+            <span>{isDark ? "Light" : "Dark"}</span>
+          </button>
+
+          <button
+            onClick={onOpenLogin}
+            style={{
+              fontSize: 13, fontWeight: 500,
+              border: "1px solid var(--border-default)",
+              padding: "8px 20px", borderRadius: 999,
+              background: "transparent",
+              color: "var(--text-primary)",
+              cursor: "pointer",
+              transition: "background 0.2s ease",
+              fontFamily: "'Inter', sans-serif",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface-hover)"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          >
+            Sign In
+          </button>
+        </div>
       </nav>
 
-      {/* ── Hero ── */}
-      <section className="relative min-h-[92vh] flex flex-col items-center justify-center px-6 overflow-hidden">
-        {/* Animated grid bg */}
-        <div className="absolute inset-0 grid-bg opacity-60 pointer-events-none" />
+      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      <section style={{ position: "relative", minHeight: "92vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px", overflow: "hidden" }}>
+        {/* Grid */}
+        <div className="homepage-grid-bg" style={{ position: "absolute", inset: 0, opacity: 0.7, pointerEvents: "none" }} />
 
         {/* Glow orbs */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-purple-700/20 blur-[120px] pointer-events-none" />
-        <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] rounded-full bg-blue-700/15 blur-[100px] pointer-events-none" />
+        <div style={{ position: "absolute", top: "25%", left: "50%", transform: "translateX(-50%)", width: 600, height: 600, borderRadius: "50%", background: isDark ? "rgba(124,58,237,0.18)" : "rgba(124,58,237,0.08)", filter: "blur(120px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "33%", left: "25%", width: 300, height: 300, borderRadius: "50%", background: isDark ? "rgba(37,99,235,0.12)" : "rgba(37,99,235,0.06)", filter: "blur(100px)", pointerEvents: "none" }} />
 
         {/* Floating cards */}
-        <div className="absolute inset-0 pointer-events-none hidden lg:block">
-          {CARDS.map((c) => (
-            <FloatingCard key={c.label} {...c} />
-          ))}
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }} className="hidden lg:block">
+          {CARDS.map((c) => <FloatingCard key={c.label} {...c} />)}
         </div>
 
-        {/* Hero content */}
-        <div className="relative z-10 text-center max-w-3xl mx-auto">
-          <div className="fade-up inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs text-purple-300 mb-8 backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+        {/* Content */}
+        <div style={{ position: "relative", zIndex: 10, textAlign: "center", maxWidth: 760, margin: "0 auto" }}>
+          <div
+            className="fade-up homepage-badge"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.8)",
+              border: "1px solid var(--border-default)",
+              borderRadius: 999, padding: "6px 16px",
+              fontSize: 12, color: "var(--text-secondary)",
+              marginBottom: 32,
+              backdropFilter: "blur(8px)",
+              fontFamily: "'Inter', sans-serif",
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block", animation: "pulse 2s infinite" }} />
             Free to use · No credit card required
           </div>
 
-          <h1 className="hero-title fade-up-1 text-5xl md:text-7xl leading-[1.08] mb-6">
+          <h1
+            className="fade-up-1 homepage-hero-title font-syne"
+            style={{
+              fontSize: "clamp(2.5rem, 7vw, 4.5rem)",
+              lineHeight: 1.08,
+              fontWeight: 800,
+              marginBottom: 24,
+              background: isDark
+                ? "linear-gradient(135deg, #fff 30%, #a78bfa 60%, #60a5fa 90%)"
+                : "linear-gradient(135deg, #0d0d1a 30%, #6d28d9 65%, #2563eb 90%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             Know where<br />every rupee goes.
           </h1>
 
-          <p className="fade-up-2 font-inter text-gray-400 text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed">
+          <p
+            className="fade-up-2 homepage-body-text font-inter"
+            style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)", maxWidth: 520, margin: "0 auto 40px", lineHeight: 1.7, color: "var(--text-secondary)" }}
+          >
             The expense tracker that's actually satisfying to use. Log, budget, and visualize your spending in seconds.
           </p>
 
-          <div className="fade-up-3 flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={onOpenLogin}
-              className="shimmer-btn text-white font-semibold px-8 py-3.5 rounded-xl cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-purple-900/40"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
+          <div className="fade-up-3" style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
+            <button onClick={onOpenLogin} className="shimmer-btn" style={{ padding: "14px 32px", fontSize: 15 }}>
               Start for free →
             </button>
             <button
               onClick={onOpenLogin}
-              className="font-inter text-gray-300 border border-white/15 px-8 py-3.5 rounded-xl hover:bg-white/5 transition cursor-pointer"
+              style={{
+                padding: "14px 32px", borderRadius: 12, fontSize: 15,
+                border: "1px solid var(--border-default)",
+                background: "transparent",
+                color: "var(--text-secondary)",
+                cursor: "pointer", fontFamily: "'Inter', sans-serif",
+                transition: "background 0.2s, color 0.2s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--bg-surface-hover)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)"; }}
             >
               Sign in
             </button>
           </div>
 
-          {/* Social proof */}
-          <p className="fade-up-4 mt-8 text-xs text-gray-600 font-inter">
+          <p className="fade-up-4 homepage-scroll-hint font-inter" style={{ marginTop: 32, fontSize: 11, color: "var(--text-muted)" }}>
             Track your spending habits
           </p>
         </div>
 
         {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-600 text-xs font-inter animate-bounce">
+        <div
+          className="homepage-scroll-hint"
+          style={{
+            position: "absolute", bottom: 32, left: "50%", transform: "translateX(-50%)",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+            color: "var(--text-muted)", fontSize: 11,
+            fontFamily: "'Inter', sans-serif",
+            animation: "bounce 2s infinite",
+          }}
+        >
           <span>scroll</span>
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
       </section>
 
-      {/* ── Stats ── */}
-      {/* <section className="py-16 border-y border-white/5 bg-white/[0.02]">
-        <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-8 text-center">
-          {[
-            { value: 12000, suffix: "+", label: "Expenses tracked" },
-            { value: 98,    suffix: "%", label: "Uptime" },
-            { value: 100,   suffix: "%", label: "Free to use" },
-          ].map((s) => (
-            <div key={s.label}>
-              <div className="font-syne text-4xl font-800 text-white mb-1">
-                <Counter target={s.value} suffix={s.suffix} />
-              </div>
-              <p className="font-inter text-gray-500 text-sm">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section> */}
-
-      {/* ── Features ── */}
-      <section className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="font-inter text-purple-400 text-sm mb-3 tracking-widest uppercase">Everything you need</p>
-            <h2 className="font-syne text-4xl md:text-5xl font-800 text-white mb-4">
+      {/* ── Features ───────────────────────────────────────────────────────── */}
+      <section style={{ padding: "96px 24px" }}>
+        <div style={{ maxWidth: 1152, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
+            <p
+              className="homepage-section-label font-inter"
+              style={{ fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--accent-purple)", marginBottom: 12 }}
+            >
+              Everything you need
+            </p>
+            <h2
+              className="homepage-section-heading font-syne"
+              style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, color: "var(--text-primary)", marginBottom: 16, lineHeight: 1.15 }}
+            >
               Built for real life,<br />not spreadsheets.
             </h2>
-            <p className="font-inter text-gray-500 max-w-xl mx-auto">
+            <p
+              className="homepage-section-sub font-inter"
+              style={{ color: "var(--text-secondary)", maxWidth: 480, margin: "0 auto", lineHeight: 1.6 }}
+            >
               No bloat. No complex setup. Just the tools you actually use every day.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {FEATURES.map((f, i) => (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
+            {FEATURES.map((f) => (
               <div
                 key={f.title}
-                className="feature-card group bg-white/[0.03] border border-white/8 rounded-2xl p-6 hover:bg-white/[0.06] hover:border-white/15 transition-all duration-300 cursor-default"
-                style={{ animationDelay: `${i * 0.1}s` }}
+                className="feature-card homepage-feature-card"
+                style={{
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border-default)",
+                  borderRadius: 20, padding: 24,
+                  boxShadow: "var(--card-shadow)",
+                  cursor: "default",
+                  transition: "background 0.2s, border-color 0.2s, box-shadow 0.2s",
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface-hover)"}
+                onMouseLeave={e => e.currentTarget.style.background = "var(--bg-surface)"}
               >
                 <div
-                  className="feature-icon w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4"
-                  style={{ backgroundColor: f.color + "18", border: `1px solid ${f.color}30` }}
+                  className="feature-icon"
+                  style={{
+                    width: 48, height: 48, borderRadius: 14,
+                    background: f.color + "18",
+                    border: `1px solid ${f.color}30`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 22, marginBottom: 16,
+                  }}
                 >
                   {f.icon}
                 </div>
-                <h3 className="font-syne font-700 text-white text-lg mb-2">{f.title}</h3>
-                <p className="font-inter text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+                <h3 className="font-syne" style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>
+                  {f.title}
+                </h3>
+                <p className="font-inter" style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.65 }}>
+                  {f.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Dashboard preview strip ── */}
-      <section className="py-16 px-6">
-        <div className="max-w-4xl mx-auto">
+      {/* ── CTA ────────────────────────────────────────────────────────────── */}
+      <section style={{ padding: "0 24px 96px" }}>
+        <div style={{ maxWidth: 896, margin: "0 auto" }}>
           <div
-            className="rounded-3xl p-8 md:p-12 text-center relative overflow-hidden glow-purple"
             style={{
-              background: "linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(37,99,235,0.15) 100%)",
-              border: "1px solid rgba(124,58,237,0.3)",
+              borderRadius: 28, padding: "64px 48px",
+              textAlign: "center", position: "relative", overflow: "hidden",
+              background: "linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(37,99,235,0.12) 100%)",
+              border: "1px solid rgba(124,58,237,0.28)",
+              boxShadow: "0 0 60px rgba(124,58,237,0.18), 0 0 120px rgba(124,58,237,0.08)",
             }}
           >
-            {/* bg decoration */}
-            <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-purple-600/20 blur-[80px] pointer-events-none" />
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-blue-600/20 blur-[80px] pointer-events-none" />
+            <div style={{ position: "absolute", top: -80, right: -80, width: 256, height: 256, borderRadius: "50%", background: "rgba(124,58,237,0.15)", filter: "blur(80px)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", bottom: -80, left: -80, width: 256, height: 256, borderRadius: "50%", background: "rgba(37,99,235,0.12)", filter: "blur(80px)", pointerEvents: "none" }} />
 
-            <div className="relative z-10">
-              <div
-                className="inline-flex w-16 h-16 rounded-2xl items-center justify-center text-3xl mb-6 mx-auto"
-                style={{ backgroundColor: "rgba(124,58,237,0.3)", animation: "pulse-ring 2s ease infinite" }}
-              >
-                💸
-              </div>
-              <h2 className="font-syne text-3xl md:text-4xl font-800 text-white mb-4">
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{
+                display: "inline-flex", width: 64, height: 64, borderRadius: 18,
+                alignItems: "center", justifyContent: "center", fontSize: 28,
+                background: "rgba(124,58,237,0.3)", marginBottom: 24,
+                animation: "pulse-ring 2s ease infinite",
+              }}>💸</div>
+              <h2 className="font-syne" style={{ fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)", fontWeight: 800, color: "white", marginBottom: 16, lineHeight: 1.2 }}>
                 Ready to take control?
               </h2>
-              <p className="font-inter text-gray-400 mb-8 max-w-md mx-auto">
+              <p className="font-inter" style={{ color: "rgba(255,255,255,0.65)", marginBottom: 32, maxWidth: 400, margin: "0 auto 32px", lineHeight: 1.6 }}>
                 Create your free account in under 30 seconds. No forms, no fuss.
               </p>
-              <button
-                onClick={onOpenLogin}
-                className="shimmer-btn font-inter font-semibold text-white px-10 py-4 rounded-xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-xl shadow-purple-900/40"
-              >
+              <button onClick={onOpenLogin} className="shimmer-btn" style={{ padding: "16px 40px", fontSize: 15 }}>
                 Create free account →
               </button>
             </div>
@@ -360,19 +368,23 @@ function HomePage({ onOpenLogin }) {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="py-8 px-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-3">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-purple-600 flex items-center justify-center text-xs font-bold">Rs</div>
-          <span className="font-syne text-sm text-gray-500">ExpenseTracker</span>
+      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      <footer
+        className="homepage-footer"
+        style={{
+          padding: "28px 32px",
+          borderTop: "1px solid var(--border-subtle)",
+          display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12,
+          background: "var(--bg-surface)",
+          transition: "background 0.25s ease",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 24, height: 24, borderRadius: 6, background: "#7C3AED", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "white" }}>Rs</div>
+          <span className="font-syne" style={{ fontSize: 13, color: "var(--text-muted)" }}>ExpenseTracker</span>
         </div>
-        <p className="font-inter text-xs text-gray-600">
-          Built with Node.js · React · PostgreSQL
-        </p>
-        {/* ── Copyright ── */ }
-        <p className="font-inter text-xs text-gray-600">
-          &copy; {new Date().getFullYear()} ExpenseTracker. All rights reserved.
-        </p>
+        <p className="font-inter" style={{ fontSize: 12, color: "var(--text-muted)" }}>Built with Node.js · React · PostgreSQL</p>
+        <p className="font-inter" style={{ fontSize: 12, color: "var(--text-muted)" }}>© {new Date().getFullYear()} ExpenseTracker. All rights reserved.</p>
       </footer>
     </div>
   );

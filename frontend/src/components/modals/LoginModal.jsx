@@ -6,11 +6,11 @@ import { loginSchema } from "../../validation/schemas";
 
 function FieldError({ message }) {
   if (!message) return null;
-  return <p className="text-red-500 text-xs mt-1">{message}</p>;
+  return <p style={{ color: "#f87171", fontSize: 12, marginTop: 4, fontFamily: "'Inter', sans-serif" }}>{message}</p>;
 }
 
 function LoginModal({ onClose, onLoginSuccess, onSwitchToRegister }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [apiError, setApiError] = useState("");
 
@@ -19,10 +19,7 @@ function LoginModal({ onClose, onLoginSuccess, onSwitchToRegister }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setApiError("");
-
-    const ok = validate({ email, password });
-    if (!ok) return;
-
+    if (!validate({ email, password })) return;
     try {
       const res = await login({ email, password });
       onLoginSuccess(res.data);
@@ -33,78 +30,60 @@ function LoginModal({ onClose, onLoginSuccess, onSwitchToRegister }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white w-full max-w-md p-8 rounded-xl shadow-lg relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-black cursor-pointer"
-        >
-          ✕
-        </button>
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, zIndex: 50,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "var(--bg-overlay)", backdropFilter: "blur(10px)",
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: "100%", maxWidth: 440, padding: 36, borderRadius: 24, position: "relative",
+        background: "var(--bg-modal)",
+        border: "1px solid var(--border-default)",
+        boxShadow: "0 40px 80px rgba(0,0,0,0.25)",
+        fontFamily: "'Inter', sans-serif",
+      }}>
+        <button onClick={onClose} style={{
+          position: "absolute", top: 16, right: 16,
+          background: "none", border: "none", cursor: "pointer",
+          color: "var(--text-muted)", fontSize: 18, lineHeight: 1,
+          transition: "color 0.15s",
+        }}
+          onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"}
+          onMouseLeave={e => e.currentTarget.style.color = "var(--text-muted)"}
+        >✕</button>
 
-        <h2 className="text-xl font-bold mb-4 text-center">Login</h2>
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 14, background: "#7C3AED",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 16, fontWeight: 700, color: "white", margin: "0 auto 16px",
+          }}>Rs</div>
+          <h2 className="font-syne" style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>Welcome back</h2>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>Sign in to your account</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                clearFieldError("email");
-              }}
-              className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.email
-                  ? "border-red-400 focus:ring-red-300"
-                  : "border-gray-300 focus:ring-purple-400"
-              }`}
-            />
+            <input type="email" placeholder="Email" value={email}
+              onChange={(e) => { setEmail(e.target.value); clearFieldError("email"); }}
+              className={`et-input${errors.email ? " error" : ""}`} />
             <FieldError message={errors.email} />
           </div>
-
           <div>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                clearFieldError("password");
-              }}
-              className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
-                errors.password
-                  ? "border-red-400 focus:ring-red-300"
-                  : "border-gray-300 focus:ring-purple-400"
-              }`}
-            />
+            <input type="password" placeholder="Password" value={password}
+              onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); }}
+              className={`et-input${errors.password ? " error" : ""}`} />
             <FieldError message={errors.password} />
           </div>
-
-          <button
-            type="submit"
-            className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 cursor-pointer"
-          >
-            Login
+          {apiError && <p style={{ color: "#f87171", fontSize: 13, textAlign: "center" }}>{apiError}</p>}
+          <button type="submit" className="shimmer-btn" style={{ width: "100%", padding: "12px 0", marginTop: 4 }}>
+            Sign In
           </button>
         </form>
 
-        {apiError && (
-          <p className="text-red-500 text-sm mt-3 text-center">{apiError}</p>
-        )}
-
-        <p className="mt-4 text-sm text-center">
-          <span className="text-gray-600">Don't have an account? </span>
-          <span
-            onClick={onSwitchToRegister}
-            className="text-blue-600 hover:underline cursor-pointer font-medium"
-          >
+        <p style={{ marginTop: 20, fontSize: 13, textAlign: "center", color: "var(--text-muted)" }}>
+          Don't have an account?{" "}
+          <span onClick={onSwitchToRegister} style={{ color: "var(--accent-purple)", cursor: "pointer", fontWeight: 500 }}>
             Register
           </span>
         </p>
