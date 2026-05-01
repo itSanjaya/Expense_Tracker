@@ -13,7 +13,6 @@ import ExpenseCharts from "./components/ExpenseCharts";
 import Navbar from "./components/Navbar";
 import SettingsPage from "./components/SettingsPage";
 import ToastContainer from "./components/ToastContainer";
-import Footer from "./components/Footer";
 
 import HomePage from "./components/HomePage";
 import LoginModal from "./components/modals/LoginModal";
@@ -159,9 +158,9 @@ function App() {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.25rem" }}>
-          {/* Left column */}
-          <div style={{ gridColumn: "span 1", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        <div className="dashboard-grid">
+          {/* Left column — Add Expense + Budget (moves below on mobile) */}
+          <div className="dashboard-col-left">
             <div className="card">
               <ExpenseForm
                 onExpenseAdded={handleExpenseAdded}
@@ -177,8 +176,8 @@ function App() {
             <BudgetProgress budgets={budgets} expenses={expenses} categories={categories} selectedMonth={selectedMonth} />
           </div>
 
-          {/* Right column */}
-          <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {/* Right column — Filter + Summary + Expenses (shows first on mobile) */}
+          <div className="dashboard-col-right">
             <div className="card">
               <ExpenseFilter filters={filters} categories={categories} onFilterChange={setFilters} onClearFilters={clearFilters} />
             </div>
@@ -204,7 +203,6 @@ function App() {
       </div>
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
-      <Footer />
     </div>
   );
 }

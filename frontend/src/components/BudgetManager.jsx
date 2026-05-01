@@ -51,8 +51,8 @@ function BudgetManager({ categories, budgets, setBudgets, selectedMonth, onMonth
       </div>
 
       <form onSubmit={handleSubmit} style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-          <div style={{ flex: 1 }}>
+        <div className="budget-form-row">
+          <div className="budget-select">
             <select
               value={form.categoryId}
               onChange={(e) => { setForm({ ...form, categoryId: e.target.value }); clearFieldError("categoryId"); }}
@@ -66,7 +66,7 @@ function BudgetManager({ categories, budgets, setBudgets, selectedMonth, onMonth
             <FieldError message={errors.categoryId} />
           </div>
 
-          <div style={{ width: 96 }}>
+          <div className="budget-limit">
             <input
               type="number"
               placeholder="Limit"
@@ -77,20 +77,22 @@ function BudgetManager({ categories, budgets, setBudgets, selectedMonth, onMonth
             <FieldError message={errors.limitAmount} />
           </div>
 
-          <button
-            type="submit"
-            style={{
-              padding: "9px 16px", borderRadius: 10, border: "none", flexShrink: 0,
-              background: "linear-gradient(135deg, #7C3AED, #9333ea)",
-              color: "white", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
-              cursor: "pointer", boxShadow: "0 4px 12px rgba(124,58,237,0.25)",
-              transition: "opacity 0.15s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
-            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
-          >
-            Save
-          </button>
+          <div className="budget-save">
+            <button
+              type="submit"
+              style={{
+                padding: "9px 16px", borderRadius: 10, border: "none",
+                background: "linear-gradient(135deg, #7C3AED, #9333ea)",
+                color: "white", fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
+                cursor: "pointer", boxShadow: "0 4px 12px rgba(124,58,237,0.25)",
+                transition: "opacity 0.15s", whiteSpace: "nowrap",
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+              onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+            >
+              Save
+            </button>
+          </div>
         </div>
       </form>
 
