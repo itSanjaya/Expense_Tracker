@@ -59,68 +59,78 @@ A full-stack expense tracking web application built with **Node.js**, **React**,
  
 ```
 Expense-Tracker/
-│
 ├── backend/
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── db.js                  # PostgreSQL connection pool
+│   │   │   └── db.js                 # PostgreSQL connection pool  
 │   │   ├── controllers/
-│   │   │   ├── accountController.js   # Get profile, update settings, change password, delete account
-│   │   │   ├── authController.js      # Register, login, logout, getMe
-│   │   │   ├── categoryController.js
-│   │   │   ├── expenseController.js
-│   │   │   └── budgetController.js    # Fetch and upsert budgets
+│   │   │   ├── accountController.js  # Get profile, update settings, change password, delete account
+│   │   │   ├── authController.js     # Register, login, logout, getMe
+│   │   │   ├── budgetController.js   # Fetch and upsert budgets
+│   │   │   ├── categoryController.js   
+│   │   │   └── expenseController.js  # CRUD for expenses  
 │   │   ├── middleware/
-│   │   │   ├── authMiddleware.js      # JWT verification → req.user
-│   │   │   └── validate.js            # Reusable Zod validation middleware
+│   │   │   ├── authMiddleware.js     # JWT verification → req.user
+│   │   │   └── validate.js           # Reusable Zod validation middleware
 │   │   ├── models/
-│   │   │   ├── accountModel.js        # Account DB queries (get profile, update settings, change password, delete account)
-│   │   │   ├── authModel.js           # User DB queries
-│   │   │   ├── categoryModel.js       # Category DB queries
-│   │   │   ├── expenseModel.js        # Expense DB queries
-│   │   │   └── budgetModel.js         # Budget DB queries
+│   │   │   ├── accountModel.js     # Account DB queries (get profile, update settings, change password, delete account)
+│   │   │   ├── authModel.js        # User DB queries (register, find by email, etc)
+│   │   │   ├── budgetModel.js      # Budget DB queries (get budgets, upsert budget)
+│   │   │   ├── categoryModel.js    # Category DB queries (get categories, create category)
+│   │   │   └── expenseModel.js     # Expense DB queries (get expenses, create/update/delete expense)
 │   │   ├── routes/
-│   │   │   ├── accountRoutes.js       # Get profile, update settings, change password, delete account
-│   │   │   ├── authRoutes.js
-│   │   │   ├── categoryRoutes.js
-│   │   │   ├── expenseRoutes.js
-│   │   │   └── budgetRoutes.js
+│   │   │   ├── accountRoutes.js    # Get profile, update settings, change password, delete account
+│   │   │   ├── authRoutes.js       # Register, login, logout, getMe  
+│   │   │   ├── budgetRoutes.js     # Fetch and upsert budgets
+│   │   │   ├── categoryRoutes.js   # Get categories, create category
+│   │   │   └── expenseRoutes.js    
 │   │   ├── validation/
-│   │   │   └── schemas.js             # Zod schemas (auth, expenses, categories, budgets)
-│   │   ├── app.js                     # Express app setup
-│   │   └── server.js                  # Server entry point
+│   │   │   └── schemas.js          # Zod schemas for request body validation (auth, expenses, categories, budgets)
+│   │   ├── app.js                  # Express app setup (middleware, routes)
+│   │   └── server.js               # Server entry point (app.listen)
 │   ├── .env
 │   └── package.json
 │
 └── frontend/
     ├── src/
     │   ├── api/
-    │   │   ├── authApi.js             # login, register, logout, getCurrentUser
-    │   │   ├── accountApi.js          # get profile, update settings, change password, delete account
-    │   │   ├── expenseApi.js          # expenses & categories API calls
-    │   │   └── budgetApi.js           # budget API calls
+    │   │   ├── accountApi.js       # get profile, update settings, change password, delete account
+    │   │   ├── authApi.js          # login, register, logout, getCurrentUser
+    │   │   ├── budgetApi.js        # budget API calls (fetch and upsert budgets)
+    │   │   └── expenseApi.js       # expenses & categories API calls (get expenses, create/update/delete expense, get/create category)
     │   ├── components/
     │   │   ├── modals/
-    │   │   │   ├── AccountSettingsModal.jsx  # Update profile, change password, delete account
-    │   │   │   ├── ConfirmModal.jsx
-    │   │   │   ├── LoginModal.jsx
-    │   │   │   └── RegisterModal.jsx
-    │   │   ├── ExpenseFilter.jsx      # Filter by category and date range
-    │   │   ├── ExpenseForm.jsx        # Add expense form with inline category creation
-    │   │   ├── ExpenseList.jsx        # Expense list with edit/delete + CSV export
-    │   │   ├── SummaryBar.jsx         # Spending summary cards
-    │   │   ├── BudgetManager.jsx      # Set monthly budget limits with month picker
-    │   │   ├── BudgetProgress.jsx     # Budget progress bars (green/yellow/red)
-    │   │   └── HomePage.jsx           # Landing page
+    │   │   │   ├── ConfirmModal.jsx    # Generic confirmation modal
+    │   │   │   ├── LoginModal.jsx      # Login form modal
+    │   │   │   └── RegisterModal.jsx   # Registration form modal
+    │   │   ├── BudgetManager.jsx       # Set monthly budget limits with month picker
+    │   │   ├── BudgetProgress.jsx      # Budget progress bars (green/yellow/red) 
+    │   │   ├── ExpenseCharts.jsx       # Charts showing spending breakdowns 
+    │   │   ├── ExpenseFilter.jsx       # Filter by category and date range
+    │   │   ├── ExpenseForm.jsx         # Add expense form with inline category creation
+    │   │   ├── ExpenseList.jsx         # Expense list with edit/delete + CSV export
+    │   │   ├── HomePage.jsx            # Landing page with app overview and call to action
+    │   │   ├── Identicon.jsx           # User avatar component that generates an identicon based on user ID
+    │   │   ├── Navbar.jsx              # Navbar with links and user menu
+    │   │   ├── SettingsPage.jsx        # User settings page with profile update, change password, delete account
+    │   │   ├── SummaryBar.jsx          # Spending summary cards (total this month, all-time total, expense count, top category)
+    │   │   └── ToastContainer.jsx      # Toast notifications container
+    │   ├── context/
+    │   │   └── ThemeContext.jsx        # Theme context for light/dark mode 
     │   ├── hooks/
-    │   │   └── useZodForm.js          # Lightweight Zod-backed form validation hook
-    │   ├── utils/
-    │   │   └── exportToCSV.js         # CSV export utility
+    │   │   ├── useToast.js             # Custom hook for showing toast notifications
+    │   │   └── useZodForm.js           # Lightweight Zod-backed form validation hook
+    │   ├── utils/  
+    │   │   ├── exportToCSV.js          # CSV export utility for expenses
+    │   │   └── identicon.js            # Identicon generation logic for user avatars
     │   ├── validation/
-    │   │   └── schemas.js             # Zod schemas (frontend)
-    │   ├── App.jsx                    # Root component, single source of truth for state
-    │   └── main.jsx
+    │   │   └── schemas.js              # Zod schemas for frontend form validation (auth, expenses, categories, budgets)
+    │   ├── App.jsx                     # Root component, single source of truth for state and API calls
+    │   ├── App.css                     
+    │   ├── index.css                   # Global styles (Tailwind imports)
+    │   └── main.jsx                    # Entry point, wraps app in ThemeProvider
     ├── .env
+    ├── index.html
     └── package.json
 ```
  
