@@ -270,6 +270,112 @@ select.et-input option {
   to   { width: 0%; }
 }
 
+
+/* ── Hero title — gradient text without transition glitch ───────────────── */
+/*
+  Root cause of the flash: switching `background` via inline React style while
+  `background-clip: text` is active causes the browser to briefly paint the
+  full gradient rectangle before re-clipping it to the glyph shapes. Any CSS
+  `transition` on background makes this worse.
+
+  Fix: define both gradient variants as static CSS classes. Swap the class on
+  theme change instead of mutating the background property. Never transition
+  the background on a background-clip:text element.
+*/
+
+.hero-title-dark {
+  background: linear-gradient(135deg, #ffffff 30%, #a78bfa 60%, #60a5fa 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  /* intentionally no transition */
+}
+
+.hero-title-light {
+  background: linear-gradient(135deg, #0d0d1a 30%, #6d28d9 65%, #2563eb 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  /* intentionally no transition */
+}
+
+/* Fade the whole heading out+in on theme change instead of transitioning
+   the gradient (which would repaint the unclipped rectangle mid-transition) */
+@keyframes heroTitleFade {
+  0%   { opacity: 1; }
+  35%  { opacity: 0; }
+  100% { opacity: 1; }
+}
+.hero-title-changing {
+  animation: heroTitleFade 0.28s ease both;
+}
+
+/* ── Settings page responsive ────────────────────────────────────────────── */
+/*
+  Desktop (>=640px): vertical sidebar 180px + content fills rest
+  Mobile  (<640px):  sidebar collapses into horizontal scrollable pill-tabs
+*/
+
+.settings-layout {
+  display: flex;
+  gap: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.settings-sidebar {
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.settings-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .settings-layout {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .settings-sidebar {
+    width: 100%;
+  }
+
+  .settings-sidebar nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .settings-sidebar nav::-webkit-scrollbar { display: none; }
+
+  .settings-tab-btn {
+    flex-shrink: 0 !important;
+    width: auto !important;
+    padding: 7px 14px !important;
+    border-radius: 999px !important;
+    white-space: nowrap;
+    text-align: center !important;
+  }
+
+  /* Hide text labels on very small screens, show only icons */
+  @media (max-width: 360px) {
+    .settings-tab-label { display: none; }
+    .settings-tab-btn { padding: 8px 12px !important; }
+  }
+}
+
 /* ── Dashboard layout ────────────────────────────────────────────────────── */
 
 /*

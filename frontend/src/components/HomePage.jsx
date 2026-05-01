@@ -2,6 +2,22 @@
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 
+// Triggers a CSS fade on the hero title when theme changes instead of
+// transitioning the gradient background (which causes a clipping-rect flash).
+function useHeroTitleFade(theme) {
+  const [fading, setFading] = useState(false);
+  const prev = useRef(theme);
+  useEffect(() => {
+    if (prev.current !== theme) {
+      prev.current = theme;
+      setFading(true);
+      const t = setTimeout(() => setFading(false), 300);
+      return () => clearTimeout(t);
+    }
+  }, [theme]);
+  return fading;
+}
+
 function FloatingCard({ style, emoji, label, amount, color, delay }) {
   return (
     <div
@@ -54,6 +70,7 @@ const CARDS = [
 function HomePage({ onOpenLogin }) {
   const { theme, toggle } = useTheme();
   const isDark = theme === "dark";
+  const titleFading = useHeroTitleFade(theme);
 
   return (
     <div
@@ -202,18 +219,14 @@ function HomePage({ onOpenLogin }) {
           </div>
 
           <h1
-            className="fade-up-1 homepage-hero-title font-syne"
+            className={`fade-up-1 font-syne ${isDark ? "hero-title-dark" : "hero-title-light"} ${titleFading ? "hero-title-changing" : ""}`}
             style={{
               fontSize: "clamp(2.5rem, 7vw, 4.5rem)",
               lineHeight: 1.08,
               fontWeight: 800,
               marginBottom: 24,
-              background: isDark
-                ? "linear-gradient(135deg, #fff 30%, #a78bfa 60%, #60a5fa 90%)"
-                : "linear-gradient(135deg, #0d0d1a 30%, #6d28d9 65%, #2563eb 90%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              /* background and clip are set by the CSS class — NOT here,
+                 so React never mutates the background property on re-render */
             }}
           >
             Know where<br />every rupee goes.

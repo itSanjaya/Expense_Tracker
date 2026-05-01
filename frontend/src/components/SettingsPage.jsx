@@ -414,15 +414,16 @@ function SettingsPage({ user, onBack, onProfileSaved, onAccountDeleted, defaultT
         <h1 className="font-syne" style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>Settings</h1>
       </div>
 
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px", display: "flex", gap: 32 }}>
+      <div className="settings-layout">
         {/* Sidebar */}
-        <aside style={{ width: 180, flexShrink: 0 }}>
-          <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <aside className="settings-sidebar">
+          <nav>
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
               const isDanger = tab.id === "danger";
               return (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                  className="settings-tab-btn"
                   style={{
                     width: "100%", textAlign: "left",
                     display: "flex", alignItems: "center", gap: 10,
@@ -444,7 +445,7 @@ function SettingsPage({ user, onBack, onProfileSaved, onAccountDeleted, defaultT
                   onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "var(--bg-surface-hover)"; e.currentTarget.style.color = "var(--text-primary)"; } }}
                   onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; } }}
                 >
-                  <span>{tab.icon}</span>{tab.label}
+                  <span>{tab.icon}</span><span className="settings-tab-label">{tab.label}</span>
                 </button>
               );
             })}
@@ -452,7 +453,7 @@ function SettingsPage({ user, onBack, onProfileSaved, onAccountDeleted, defaultT
         </aside>
 
         {/* Content */}
-        <main style={{ flex: 1, minWidth: 0 }}>
+        <main className="settings-content">
           <div style={{
             borderRadius: 16, padding: 24,
             background: "var(--bg-surface)",

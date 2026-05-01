@@ -13,6 +13,7 @@ import ExpenseCharts from "./components/ExpenseCharts";
 import Navbar from "./components/Navbar";
 import SettingsPage from "./components/SettingsPage";
 import ToastContainer from "./components/ToastContainer";
+import Footer from "./components/Footer";
 
 import HomePage from "./components/HomePage";
 import LoginModal from "./components/modals/LoginModal";
@@ -203,6 +204,7 @@ function App() {
       </div>
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
+      <Footer/>
     </div>
   );
 }
